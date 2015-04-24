@@ -56,6 +56,10 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 	Circuit* circ = circIn;
 	unsigned errorsCnt = ceil(((double) circ->POs.size()) / 3.0);
 	
+	if(options[OPT_ERROR_PO_SAMEW]){
+		errorsCnt = circ->POs.size();
+	}
+
 	cout << "Printing output file: " << filename << endl;
 	
 	outfile = fopen(filename, "w");
@@ -112,7 +116,7 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 		}
 		
 	if(options[OPT_DUPLICATE_PI]){
-		fprintf(outfile, "\t\tinputs_copy : in STD_LOGIC_VECTOR ( %d downto 0 );\n", circ->PIs.size()-1);
+		fprintf(outfile, "\t\tinputs_copy : in STD_LOGIC_VECTOR ( %ld downto 0 );\n", circ->PIs.size()-1);
 	}
 	
 	//POs names must be stored to print the internal PO signals, that are required for checking.
@@ -174,7 +178,10 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 	
 	if(!options[OPT_NO_CMP_MODULE]){
 		fprintf(outfile, "\tcomponent comparator is\n");
-		fprintf(outfile, "\t\tGeneric ( IN_WIDTH : integer := %d;\n", options[OPT_2RAIL] ? 6*errorsCnt : circ->POs.size());
+		if(options[OPT_ERROR_PO_SAMEW])
+			fprintf(outfile, "\t\tGeneric ( IN_WIDTH : integer := %ld;\n", options[OPT_2RAIL] ? 2*errorsCnt : circ->POs.size());
+		else
+			fprintf(outfile, "\t\tGeneric ( IN_WIDTH : integer := %ld;\n", options[OPT_2RAIL] ? 6*errorsCnt : circ->POs.size());
 		fprintf(outfile, "\t\t\tOUT_WIDTH : integer := %d\n", options[OPT_2RAIL] ? 2*errorsCnt: errorsCnt);
 		fprintf(outfile, "\t\t);\n");
 		fprintf(outfile, "\tPort ( inVecA : in  STD_LOGIC_VECTOR (IN_WIDTH-1 downto 0);\n");
@@ -184,7 +191,10 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 	}
 	
 	if(!options[OPT_NO_CMP_MODULE]){
-		fprintf(outfile, "\tsignal c0_cmp_outvec, c1_cmp_outvec: STD_LOGIC_VECTOR(%d downto 0);\n", options[OPT_2RAIL] ? 3*errorsCnt-1 : circ->POs.size()-1);
+		if(options[OPT_ERROR_PO_SAMEW])
+			fprintf(outfile, "\tsignal c0_cmp_outvec, c1_cmp_outvec: STD_LOGIC_VECTOR(%ld downto 0);\n", options[OPT_2RAIL] ? errorsCnt-1 : circ->POs.size()-1);
+		else
+			fprintf(outfile, "\tsignal c0_cmp_outvec, c1_cmp_outvec: STD_LOGIC_VECTOR(%ld downto 0);\n", options[OPT_2RAIL] ? 3*errorsCnt-1 : circ->POs.size()-1);
 	}
 	
 	if(options[OPT_E_AGGREG]) {
@@ -286,26 +296,42 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 			fprintf(outfile, "\tc1_cmp_outvec(%d) <= c1_%s;\n", i, circ->POs[i]->name.c_str());
 		}
 		if(options[OPT_2RAIL]) {
-			for(i=circ->POs.size(); i < errorsCnt*3; i++){
-				fprintf(outfile, "\tc0_cmp_outvec(%d) <= '0';\n", i);
-				fprintf(outfile, "\tc1_cmp_outvec(%d) <= '0';\n", i);
+			if(options[OPT_ERROR_PO_SAMEW]) {
+				fprintf(outfile, "\tpo_checker : comparator\n");
+				fprintf(outfile, "\t\tport map (\n");
+				fprintf(outfile, "\t\t\tinVecA(%d downto 0) => c0_cmp_outvec,\n", errorsCnt-1);
+				fprintf(outfile, "\t\t\tinVecA(%d downto %d) => c0_cmp_outvec,\n", errorsCnt*2-1, errorsCnt);
+				fprintf(outfile, "\t\t\tinVecB(%d downto 0) => c1_cmp_outvec,\n", errorsCnt-1);
+				fprintf(outfile, "\t\t\tinVecB(%d downto %d) => c1_cmp_outvec,\n", errorsCnt*2-1, errorsCnt);
+				fprintf(outfile, "\t\t\terrors(%d downto 0) => errorVec,\n", errorsCnt-1);
+				fprintf(outfile, "\t\t\terrors(%d downto %d) => errorVecPO\n", 2*errorsCnt-1, errorsCnt);
+			} else {
+				for(i=circ->POs.size(); i < errorsCnt*3; i++){
+					fprintf(outfile, "\tc0_cmp_outvec(%d) <= '0';\n", i);
+					fprintf(outfile, "\tc1_cmp_outvec(%d) <= '0';\n", i);
+				}
+				fprintf(outfile, "\tpo_checker : comparator\n");
+				fprintf(outfile, "\t\tport map (\n");
+				fprintf(outfile, "\t\t\tinVecA(%d downto 0) => c0_cmp_outvec,\n", errorsCnt*3-1);
+				fprintf(outfile, "\t\t\tinVecA(%d downto %d) => c0_cmp_outvec,\n", errorsCnt*6-1, errorsCnt*3);
+				fprintf(outfile, "\t\t\tinVecB(%d downto 0) => c1_cmp_outvec,\n", errorsCnt*3-1);
+				fprintf(outfile, "\t\t\tinVecB(%d downto %d) => c1_cmp_outvec,\n", errorsCnt*6-1, errorsCnt*3);
+				fprintf(outfile, "\t\t\terrors(%d downto 0) => errorVec,\n", errorsCnt-1);
+				fprintf(outfile, "\t\t\terrors(%d downto %d) => errorVecPO\n", 2*errorsCnt-1, errorsCnt);
 			}
-			fprintf(outfile, "\tpo_checker : comparator\n");
-			fprintf(outfile, "\t\tport map (\n");
-			fprintf(outfile, "\t\t\tinVecA(%d downto 0) => c0_cmp_outvec,\n", errorsCnt*3-1);
-			fprintf(outfile, "\t\t\tinVecA(%d downto %d) => c0_cmp_outvec,\n", errorsCnt*6-1, errorsCnt*3);
-			fprintf(outfile, "\t\t\tinVecB(%d downto 0) => c1_cmp_outvec,\n", errorsCnt*3-1);
-			fprintf(outfile, "\t\t\tinVecB(%d downto %d) => c1_cmp_outvec,\n", errorsCnt*6-1, errorsCnt*3);
-			fprintf(outfile, "\t\t\terrors(%d downto 0) => errorVec,\n", errorsCnt-1);
-			fprintf(outfile, "\t\t\terrors(%d downto %d) => errorVecPO\n", 2*errorsCnt-1, errorsCnt);
 			fprintf(outfile, "\t\t);\n");
-		} else {	
-			fprintf(outfile, "\tpo_checker : comparator\n");
-			fprintf(outfile, "\t\tport map (\n");
-			fprintf(outfile, "\t\t\tinVecA => c0_cmp_outvec,\n");
-			fprintf(outfile, "\t\t\tinVecB => c1_cmp_outvec,\n");
-			fprintf(outfile, "\t\t\terrors => errorVec\n");
-			fprintf(outfile, "\t\t);\n");
+		} else {
+			if(options[OPT_ERROR_PO_SAMEW]) {
+				fprintf(stderr, "%s %d : DON'T KNOW WHAT TO DO!!!!\n", __FILE__, __LINE__);
+				return;
+			} else {
+				fprintf(outfile, "\tpo_checker : comparator\n");
+				fprintf(outfile, "\t\tport map (\n");
+				fprintf(outfile, "\t\t\tinVecA => c0_cmp_outvec,\n");
+				fprintf(outfile, "\t\t\tinVecB => c1_cmp_outvec,\n");
+				fprintf(outfile, "\t\t\terrors => errorVec\n");
+				fprintf(outfile, "\t\t);\n");
+			}
 		}
 	}
 	//Error aggregation instantiation************************************************************

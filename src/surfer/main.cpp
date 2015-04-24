@@ -45,9 +45,10 @@ int main(int argc, char *argv[]){
 		cout << "-di: Duplicated inputs" << endl; //*
 		cout << "-ncmp : Do not use the comparator module" << endl;
 		cout << "-ffc: Flip-flop inputs and POs comparison only" << endl;
+		cout << "-epws: Make comparator width the same as the # of POs" << endl;
 		exit(0);
 	}
-	
+
 	int i;
 	int maxcheck = DEFAULT_MAXCHECK_CC;
 	int maxgroup = DEFAULT_MAXGROUP_CC;
@@ -73,6 +74,10 @@ int main(int argc, char *argv[]){
 				}
 				if(strstr(argv[i], "-ncmp")){
 					options[OPT_NO_CMP_MODULE] = true;
+					continue;
+				}
+				if(strstr(argv[i], "-epws")){
+					options[OPT_ERROR_PO_SAMEW] = true;
 					continue;
 				}
 				break;
