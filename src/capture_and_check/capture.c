@@ -66,7 +66,7 @@ unsigned char ttybuf[128];
 		#ifdef PSEUDOTTY
 		tmo.tv_sec = 5;         /* seconds */
 		#else
-		tmo.tv_sec = (first_sig == 1 ? 3600 : 900);         /* seconds */
+		tmo.tv_sec = (first_sig == 1 ? 7200 : 1200);         /* seconds */
 		#endif /* PSEUDOTTY */
 		tmo.tv_usec = 0;        /* microseconds */
 		tmpfds = readfds;
