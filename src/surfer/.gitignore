@@ -1,3 +1,7 @@
 .cproject
 .project
+*.o
+*.vhd
+*.bak
+xilFT
 
