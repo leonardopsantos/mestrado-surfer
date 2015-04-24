@@ -16,7 +16,7 @@
 
 int main ( int argc, char *argv[] )
 {
-struct file_header_t outf_header;
+//struct file_header_t outf_header;
 struct error_sig_t *error;
 FILE *fp;
 int i, sz, discarded, k, total_errors;
@@ -32,7 +32,7 @@ unsigned char *buff, *p;
 		return -1;
 	}
 
-#if 1
+#if 0
 	i = fread(&outf_header, 1, sizeof(outf_header), fp);
 	if( i != sizeof(outf_header) ) {
 		printf("OOps, could not read the file header\n");
@@ -46,7 +46,7 @@ unsigned char *buff, *p;
 
 	total_errors = sz/sizeof(struct error_sig_t);
 
-	printf("Found %d bytes, %f errors\n", sz, ((float)sz/sizeof(struct error_sig_t)));
+	printf("File %d bytes, %d signatures\n", sz, total_errors);
 	if( (sz%sizeof(struct error_sig_t)) != 0 ) {
 		printf("OOps, file size is NOT a interger number of errors!\n");
 	}
