@@ -3,5 +3,8 @@
 *.o
 serial
 *.bin
-
+analyse
+capture
+check_cr
+serial-test
 
