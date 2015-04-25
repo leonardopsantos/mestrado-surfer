@@ -1,0 +1,1 @@
+run -ifn project.prj -ifmt mixed -top fault_inj_top -ofn netlist.ngc -ofmt NGC -p xc5vlx110t-1ff1136 -opt_mode Speed -opt_level 1 -keep_hierarchy yes

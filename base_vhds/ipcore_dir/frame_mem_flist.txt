@@ -1,0 +1,24 @@
+# Output products list for <frame_mem>
+blk_mem_gen_ds512.pdf
+blk_mem_gen_v6_2_readme.txt
+frame_mem.asy
+frame_mem.gise
+frame_mem.ngc
+frame_mem.sym
+frame_mem.vhd
+frame_mem.vho
+frame_mem.xco
+frame_mem.xise
+frame_mem_flist.txt
+frame_mem_ste\example_design\bmg_wrapper.vhd
+frame_mem_ste\example_design\frame_mem_top.ucf
+frame_mem_ste\example_design\frame_mem_top.vhd
+frame_mem_ste\example_design\frame_mem_top.xdc
+frame_mem_ste\implement\implement.sh
+frame_mem_ste\implement\planAhead_rdn.bat
+frame_mem_ste\implement\planAhead_rdn.sh
+frame_mem_ste\implement\planAhead_rdn.tcl
+frame_mem_ste\implement\xst.prj
+frame_mem_ste\implement\xst.scr
+frame_mem_xmdf.tcl
+summary.log
