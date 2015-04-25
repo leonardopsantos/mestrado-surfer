@@ -248,8 +248,12 @@ begin
 		if clk'event and clk = '1' then
 			--Registers the CUT outputs and the error detection signal to break the combinational path
 			--cut_outputs_reg		<= cut_outputs; --Registering is done outside now
-			errorVec_reg(CUT_ERROR_BITS_WIDTH_REG-1 downto 0) <= conv_std_logic_vector(0,CUT_ERROR_BITS_WIDTH_REG-CUT_ERROR_BITS_WIDTH)&errorVec(CUT_ERROR_BITS_WIDTH-1 downto 0);
-			errorVecPO_reg(CUT_ERROR_BITS_PO_WIDTH_REG-1 downto 0) <= conv_std_logic_vector(0,CUT_ERROR_BITS_PO_WIDTH_REG-CUT_ERROR_BITS_PO_WIDTH)&errorVecPO(CUT_ERROR_BITS_PO_WIDTH-1 downto 0);
+			errorVec_reg(CUT_ERROR_BITS_WIDTH_REG-1 downto CUT_ERROR_BITS_WIDTH) <= (others => '0');
+			errorVecPO_reg(CUT_ERROR_BITS_PO_WIDTH_REG-1 downto CUT_ERROR_BITS_PO_WIDTH) <= (others => '0');
+			
+			errorVec_reg(CUT_ERROR_BITS_WIDTH-1 downto 0) <= errorVec(CUT_ERROR_BITS_WIDTH-1 downto 0);
+			errorVecPO_reg(CUT_ERROR_BITS_PO_WIDTH-1 downto 0) <= errorVecPO(CUT_ERROR_BITS_PO_WIDTH-1 downto 0);
+			
 			inj_faddr_reg			<= inj_faddr;
 		end if;
 	end process;
@@ -357,7 +361,7 @@ begin
 					when SEND_SIGNATURE_PO => --signature of primary outputs
 						if tx_full = '0' then
 							if CUT_ERROR_BITS_PO_WIDTH_REG > 8 then
-								errorVecPO_uartdata(CUT_ERROR_BITS_PO_WIDTH_REG-1 downto 0) <= errorVec_uartdata(CUT_ERROR_BITS_PO_WIDTH_REG-9 downto 0) & errorVecPO_uartdata(CUT_ERROR_BITS_PO_WIDTH_REG-1 downto CUT_ERROR_BITS_PO_WIDTH_REG-8);
+								errorVecPO_uartdata(CUT_ERROR_BITS_PO_WIDTH_REG-1 downto 0) <= errorVecPO_uartdata(CUT_ERROR_BITS_PO_WIDTH_REG-9 downto 0) & errorVecPO_uartdata(CUT_ERROR_BITS_PO_WIDTH_REG-1 downto CUT_ERROR_BITS_PO_WIDTH_REG-8);
 								if transmit_cnt = conv_std_logic_vector(CUT_ERROR_BITS_PO_COUNT,16) then
 									state <= SEND_SIGNATURE;
 									transmit_cnt <= (others => '0');
