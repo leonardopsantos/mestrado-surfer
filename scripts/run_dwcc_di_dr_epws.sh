@@ -1,7 +1,7 @@
 #!/bin/bash
 
-TOPDIR=$(pwd)/..
-SCRIPTS=$(pwd)
+SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+TOPDIR=$SCRIPTS/..
 EXPERIMENTDIR=$TOPDIR/experiments/dwcc_di_dr_epws_dft2015
 BENCHESDIR=$EXPERIMENTDIR/benches
 NETGENDIR=$TOPDIR/netgen
