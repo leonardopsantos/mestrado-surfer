@@ -1,0 +1,33 @@
+
+NET "fi_ctrl/clk" TNM_NET = "clk";
+TIMESPEC "TS_clk" = PERIOD "clk" 20 ns HIGH 50%;
+
+#NET "buttons[0]" LOC = U8;
+#NET "buttons[1]" LOC = V8;
+#NET "buttons[2]" LOC = AK7;
+NET "start_button" LOC = AJ7;  #buttons[3]
+NET "rst" LOC = AJ6; #buttons[4]
+NET "clk100MHz" LOC = AH15;
+NET "leds[4]" LOC = AD26;
+NET "leds[5]" LOC = AD25;
+NET "leds[6]" LOC = AD24;
+NET "leds[7]" LOC = AE24;
+NET "uart_rx" LOC = AG15;
+NET "uart_tx" LOC = AG20;
+
+#AREA_GROUP for the circuit under test
+INST "cut" AREA_GROUP = "cut_group";
+AREA_GROUP "cut_group" RANGE = SLICE_X48Y140:SLICE_X99Y159;
+
+#AREA_GROUP for the SEU controller
+INST "fi_ctrl" AREA_GROUP = "seu_ctrl_group";
+AREA_GROUP "seu_ctrl_group" RANGE = SLICE_X72Y0:SLICE_X107Y119;
+AREA_GROUP "seu_ctrl_group" RANGE = RAMB36_X0Y0:RAMB36_X3Y19;
+
+#AREA_GROUP for the output registers
+INST "out_regs" AREA_GROUP = "reg_group";
+AREA_GROUP "reg_group" RANGE = SLICE_X104Y140:SLICE_X107Y159;
+
+#AREA_GROUP for output comparators
+INST "cut/po_checker" AREA_GROUP = "checker_group";
+AREA_GROUP "checker_group" RANGE = SLICE_X96Y140:SLICE_X99Y159;
