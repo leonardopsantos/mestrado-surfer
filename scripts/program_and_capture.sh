@@ -11,12 +11,13 @@ else
 	IMPACT=$ISE_PATH"/impact"
 fi
 
-##for bench in $(ls benches/); do
-for bench in alu4 pdc; do
+BNCHS=$(find -iname "*.bit" | cut -d'/' -f 2)
+
+for bench in $BNCHS; do
 	cd $HPWD/$bench
 	$IMPACT -batch program.cmd
 
 	if [ $? -eq 0 ]; then
-		../capture `date +%Y%m%d-%H%M`-$bench.sig
+		$HPWD/capture `date +%Y%m%d-%H%M`-$bench.sig
 	fi
 done
