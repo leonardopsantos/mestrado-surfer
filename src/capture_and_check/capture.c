@@ -42,7 +42,7 @@ int main_loop(int sfd, FILE *outfp)
 fd_set readfds, tmpfds;
 struct timeval tmo;
 int selret, i, first_sig;
-unsigned char ttybuf[128];
+unsigned char ttybuf[512];
 
 	FD_ZERO(&readfds);
 	FD_SET(sfd, &readfds);
