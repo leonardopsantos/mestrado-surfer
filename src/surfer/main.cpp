@@ -244,7 +244,7 @@ int main(int argc, char *argv[]){
 		exit(0);
 	}
 	
-	char filename[256];
+	char filename[512];
 	bool changed_folder = false;
 	
 	for(i=0; argv[1][i] != 0 && argv[1][i] != '.'; i++){
@@ -277,6 +277,13 @@ int main(int argc, char *argv[]){
 		filename[i++]='_';
 		filename[i++]='d';
 		filename[i++]='i';
+	}
+	if(options[OPT_ERROR_PO_SAMEW]){
+		filename[i++]='_';
+		filename[i++]='e';
+		filename[i++]='w';
+		filename[i++]='p';
+		filename[i++]='s';
 	}
 	filename[i++]='.';
 	filename[i++]='v';
