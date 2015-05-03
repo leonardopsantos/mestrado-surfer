@@ -7,4 +7,6 @@ analyse
 capture
 check_cr
 serial-test
+fix_signatures
+verify_sig
 
