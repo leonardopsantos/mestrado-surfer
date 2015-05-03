@@ -26,7 +26,7 @@ CFLAGS = -Wall -g -O0
 #LIBS = -lmylib -lm
 
 # define the C source files
-SRCS = capture.c serial-test.c misc.c analyse.c check_cr.c
+SRCS = capture.c serial-test.c misc.c analyse.c check_cr.c verify_sig.c
 
 # define the C object files 
 #
@@ -49,7 +49,7 @@ MAIN = capture
 
 .PHONY: depend clean
 
-all: $(MAIN) serial-test analyse check_cr
+all: $(MAIN) serial-test analyse check_cr verify_sig
 
 $(MAIN): $(OBJS) 
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) misc.o capture.o $(LFLAGS) $(LIBS)
@@ -75,5 +75,8 @@ analyse: $(OBJS)
 
 check_cr: $(OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o check_cr check_cr.o $(LFLAGS) $(LIBS)
+
+verify_sig: $(OBJS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o verify_sig verify_sig.o $(LFLAGS) $(LIBS) -lm
 
 # DO NOT DELETE THIS LINE -- make depend needs it

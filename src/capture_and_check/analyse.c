@@ -17,9 +17,9 @@
 int main ( int argc, char *argv[] )
 {
 //struct file_header_t outf_header;
-struct error_sig_t *error;
+struct error_sig_t *error, *last_ok;
 FILE *fp;
-int i, sz, discarded, k, total_errors;
+int i, sz, count, k, total_errors;
 unsigned char *buff, *p;
 
 	if( argc > 1 ) {
@@ -63,7 +63,8 @@ unsigned char *buff, *p;
 		goto ex_it;
 	}
 
-	discarded = 0;
+	count = 0;
+	last_ok = NULL;
 
 	error = (struct error_sig_t*) buff;
 	while ( error - ((struct error_sig_t*) buff) < total_errors) {
@@ -79,29 +80,15 @@ unsigned char *buff, *p;
 
 		k = check_error(error);
 		if( k != 0 ){
-//			printf("OOps, bad error signature! (%d)\n", k);
-//			print_error(error);
-//			goto ex_it;
-
-//			error -= 2;
-			p = (unsigned char *) error;
-
-			i = 0;
-			while( check_error( ((struct error_sig_t*)p) ) != 0 && 1 < 1000000 ) {
-				p++;
-				i++;
-			}
-
-			if( i == 1000000 ) {
-				printf("OMFG!! Can't align signatures!!!!\n");
-				goto ex_it;
-			}
-
-			discarded += (((struct error_sig_t*)p) - error);
-
-			error = (struct error_sig_t*)p;
-		} else
-		  error++;
+			printf("OOps, bad error signature! (%d)\n", count);
+			if( last_ok != NULL )
+				print_error(last_ok);
+			print_error(error);
+			return -1;
+		}
+		last_ok = error;
+		error++;
+		count++;
 	};
 
 ex_it:

@@ -19,8 +19,8 @@ struct file_header_t {
 	unsigned long int total_errors;	/**< total errors received */
 };
 
-#define ERRORPOBITS (16/8)
-#define ERRORBITS (16/8)
+#define ERRORPOBITS 2
+#define ERRORBITS ERRORPOBITS
 
 /** Header for each error */
 struct error_sig_t {
