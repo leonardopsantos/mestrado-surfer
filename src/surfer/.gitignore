@@ -3,6 +3,6 @@
 *.o
 *.vhd
 *.bak
+*.new
 xilFT
-
 /Debug
