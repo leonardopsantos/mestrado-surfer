@@ -1,6 +1,12 @@
+#!/bin/bash
+
+#ft_ea_dc_di.vhd
+#_ft_dc_di.vhd
+#ft_ea_dc_di_ewps
+
 for i in benches/*
 do
-	for vhd in $i/*_ft_dc_di.vhd
+	for vhd in $i/*_ft_ea_dc_di_ewps.vhd
 	do
 		inwidth=$(cat $vhd | grep -m 1 "inputVector : in STD_LOGIC_VECTOR([0-9]* downto 0)" | sed s/'		inputVector : in STD_LOGIC_VECTOR('// | sed s/' downto 0);'//)
 		outwidth=$(cat $vhd | grep -m 1 "outputVector : out STD_LOGIC_VECTOR([0-9]* downto 0)" | sed s/'		outputVector : out STD_LOGIC_VECTOR('// | sed s/' downto 0);'//)
