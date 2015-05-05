@@ -7,11 +7,11 @@ do
 		if [ ! -x $xx ]; then
 			mkdir $xx
 		fi
-		if [ ! -x $xx/realTimeScaled ]; then
-			mkdir $xx/realTimeScaled
+		if [ ! -x $xx/realTimeScaledPST ]; then
+			mkdir $xx/realTimeScaledPST
 		fi
-		if [ ! -x $xx/realTimeScaled/$occup ]; then
-			mkdir $xx/realTimeScaled/$occup
+		if [ ! -x $xx/realTimeScaledPST/$occup ]; then
+			mkdir $xx/realTimeScaledPST/$occup
 		fi
 	done
 
@@ -27,10 +27,10 @@ do
 		delay2_fg=$(cat delay_table | grep "$circname fg" | sed s/"$circname fg"//)
 
 		echo SIG ANALYZER
-		$RTTABLE $i $int_bits $po_bits 1 -t -d 7 -s $delay1_cg $delay2_fg $occup | tee exec_logs/realTimeScaled/$occup/$circname.log
-		mv *.tab outputs/realTimeScaled/$occup
-		mv *.vhd outputs/realTimeScaled/$occup
+		$RTTABLE $i $int_bits $po_bits 1 -t -s $delay1_cg $delay2_fg $occup | tee exec_logs/realTimeScaledPST/$occup/$circname.log
+		mv *.tab outputs/realTimeScaledPST/$occup
+		mv *.vhd outputs/realTimeScaledPST/$occup
 	done
 	
-	mv *.txt outputs/realTimeScaled/$occup
+	mv *.txt outputs/realTimeScaledPST/$occup
 done
