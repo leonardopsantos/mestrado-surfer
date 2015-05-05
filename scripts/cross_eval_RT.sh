@@ -17,7 +17,7 @@ fi
 
 OUTDIR=evaluatorRT/realTime
 
-rm -f $OUTDIR/circnamesFile.txt
+rm -f $OUTDIR/circNamesFile.txt
 
 for i in test/*.sig1
 do
@@ -30,7 +30,7 @@ do
 	int_bits=$(cat sizes_table | grep "$circname int" | sed s/"$circname int "//)
 	po_bits=$(cat sizes_table | grep "$circname po" | sed s/"$circname po "//)
 	echo $circname $int_bits $po_bits
-	echo $circname >> $OUTDIR/circnamesFile.txt
+	echo $circname >> $OUTDIR/circNamesFile.txt
 
 	circtab=($circname"_table")
 

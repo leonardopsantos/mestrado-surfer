@@ -15,6 +15,8 @@ do
 		mkdir $OUTDIR
 	fi
 
+	rm -f $OUTDIR/circNamesFile.txt
+
 	for i in test/*.sig1
 	do
 		circname=$(basename $i)
@@ -28,7 +30,7 @@ do
 		delay1_cg=$(cat delay_table | grep "$circname cg" | sed s/"$circname cg"//)
 		delay2_fg=$(cat delay_table | grep "$circname fg" | sed s/"$circname fg"//)
 		echo $circname $int_bits $po_bits $delay1_cg $delay2_fg
-		echo $circname >> circnamesFile.txt
+		echo $circname >> $OUTDIR/circNamesFile.txt
 
 		circtab=($circname"_table")
 		zerotable=$(ls outputs/realTime/*"$circname"_table_00000.tab)
