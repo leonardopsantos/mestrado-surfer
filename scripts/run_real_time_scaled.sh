@@ -18,8 +18,7 @@ do
 	for i in train/*.sig0
 	do
 		circname=$(basename $i)
-		circname=${circname#*-}
-		circname=${circname#*-}
+		circname=${circname##*-}
 		circname=${circname%.*}
 		echo $circname
 		int_bits=$(cat sizes_table | grep "$circname int" | sed s/"$circname int"//)

@@ -1,3 +1,4 @@
+SPLITTER=/home/lsantos/work/pep/scripts_cygwin_xilinx/signFaultInjector/src/splitter/splitter
 
 rm -f split.log
 
@@ -13,7 +14,7 @@ do
 	po_bits=$(cat sizes_table | grep "$circname po" | sed s/"$circname po"//)
 	echo $circname $int_bits $po_bits 
 	echo $circname $int_bits $po_bits >> split.log
-	./splitter $file $int_bits $po_bits 15 >> split.log
+	$SPLITTER $file $int_bits $po_bits 15 >> split.log
 done
 
 	if [ ! -x train ]; then
