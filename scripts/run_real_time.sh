@@ -1,4 +1,4 @@
-RTTABLE=/home/lsantos/work/pep/scripts_cygwin_xilinx/signFaultInjector/signature_analyzer/real_time_tables/rtTable
+RTTABLE=/home/lsantos/work/pep/scripts_cygwin_xilinx/signFaultInjector/src/real_time_tables/rtTable
 
 	for xx in outputs exec_logs; do
 		if [ ! -x $xx ]; then
