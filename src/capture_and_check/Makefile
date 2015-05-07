@@ -26,7 +26,7 @@ CFLAGS = -Wall -g -O0
 #LIBS = -lmylib -lm
 
 # define the C source files
-SRCS = capture.c serial-test.c misc.c analyse.c check_cr.c verify_sig.c
+SRCS = capture.c serial-test.c misc.c analyse.c check_cr.c verify_sig.c count_sens_bits.c
 
 # define the C object files 
 #
@@ -49,7 +49,7 @@ MAIN = capture
 
 .PHONY: depend clean
 
-all: $(MAIN) serial-test analyse check_cr verify_sig
+all: $(MAIN) serial-test analyse check_cr verify_sig count_sens_bits
 
 $(MAIN): $(OBJS) 
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) misc.o capture.o $(LFLAGS) $(LIBS)
@@ -62,7 +62,7 @@ $(MAIN): $(OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
-	$(RM) *.o *~ $(MAIN) serial-test analyse check_cr *.exe
+	$(RM) *.o *~ $(MAIN) serial-test analyse check_cr verify_sig count_sens_bits *.exe
 
 depend: $(SRCS)
 	makedepend $(INCLUDES) $^
@@ -76,7 +76,10 @@ analyse: $(OBJS)
 check_cr: $(OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o check_cr check_cr.o $(LFLAGS) $(LIBS)
 
-verify_sig: $(OBJS)
+verify_sig: verify_sig.o
 	$(CC) $(CFLAGS) $(INCLUDES) -o verify_sig verify_sig.o $(LFLAGS) $(LIBS) -lm
 
+count_sens_bits: count_sens_bits.o
+	$(CC) $(CFLAGS) $(INCLUDES) -o count_sens_bits count_sens_bits.o $(LFLAGS) $(LIBS) -lm
+	
 # DO NOT DELETE THIS LINE -- make depend needs it
