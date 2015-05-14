@@ -145,15 +145,22 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 		}
 	
 	if(options[OPT_2RAIL]){
-		if(options[OPT_E_AGGREG])
-			fprintf(outfile, "\t\terrorDetectedPO : out STD_LOGIC;\n");
-		else
+		if(options[OPT_E_AGGREG]) {
+			if( options[OPT_ERROR_PO_SAMEW] )
+				fprintf(outfile, "\t\terrorVecPO : out STD_LOGIC_VECTOR(%d downto 0);\n", errorsCnt);
+			else
+				fprintf(outfile, "\t\terrorDetectedPO : out STD_LOGIC;\n");
+		} else
 			fprintf(outfile, "\t\terrorVecPO : out STD_LOGIC_VECTOR(%d downto 0);\n", errorsCnt-1);
+
 	}
-	
-	if(options[OPT_E_AGGREG])
-		fprintf(outfile, "\t\terrorDetected : out STD_LOGIC\n");
-	else
+
+	if(options[OPT_E_AGGREG]){
+		if( options[OPT_ERROR_PO_SAMEW] )
+			fprintf(outfile, "\t\terrorVec : out STD_LOGIC_VECTOR(%d downto 0)\n", errorsCnt);
+		else
+			fprintf(outfile, "\t\terrorDetected : out STD_LOGIC\n");
+	} else
 		fprintf(outfile, "\t\terrorVec : out STD_LOGIC_VECTOR(%d downto 0)\n", errorsCnt-1);
 	
 	if(options[OPT_E_AGGREG]){
@@ -196,11 +203,24 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 		else
 			fprintf(outfile, "\tsignal c0_cmp_outvec, c1_cmp_outvec: STD_LOGIC_VECTOR(%ld downto 0);\n", options[OPT_2RAIL] ? 3*errorsCnt-1 : circ->POs.size()-1);
 	}
-	
+
 	if(options[OPT_E_AGGREG]) {
-		fprintf(outfile, "\tsignal errorVec : STD_LOGIC_VECTOR(%d downto 0);\n", errorsCnt-1);
-		if(options[OPT_2RAIL])
-			fprintf(outfile, "\tsignal errorVecPO : STD_LOGIC_VECTOR(%d downto 0);\n", errorsCnt-1);
+		fprintf(outfile, "\tsignal sig_errorVec : STD_LOGIC_VECTOR(%d downto 0);\n", errorsCnt-1);
+		if( options[OPT_ERROR_PO_SAMEW] )
+			fprintf(outfile, "\tsignal errorDetected : STD_LOGIC;\n");
+
+		if(options[OPT_2RAIL]) {
+			fprintf(outfile, "\tsignal sig_errorVecPO : STD_LOGIC_VECTOR(%d downto 0);\n", errorsCnt-1);
+			if( options[OPT_ERROR_PO_SAMEW] )
+				fprintf(outfile, "\tsignal errorDetectedPO : STD_LOGIC;\n");
+		}
+	} else {
+		if( options[OPT_ERROR_PO_SAMEW] ) {
+			fprintf(outfile, "\tsignal sig_errorVec : STD_LOGIC_VECTOR(%d downto 0);\n", errorsCnt-1);
+			if(options[OPT_2RAIL]) {
+				fprintf(outfile, "\tsignal sig_errorVecPO : STD_LOGIC_VECTOR(%d downto 0);\n", errorsCnt-1);
+			}
+		}
 	}
 	
 	fprintf(outfile, "\tcomponent %s is\n", circ->name.c_str());
@@ -303,8 +323,8 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 				fprintf(outfile, "\t\t\tinVecA(%d downto %d) => c0_cmp_outvec,\n", errorsCnt*2-1, errorsCnt);
 				fprintf(outfile, "\t\t\tinVecB(%d downto 0) => c1_cmp_outvec,\n", errorsCnt-1);
 				fprintf(outfile, "\t\t\tinVecB(%d downto %d) => c1_cmp_outvec,\n", errorsCnt*2-1, errorsCnt);
-				fprintf(outfile, "\t\t\terrors(%d downto 0) => errorVec,\n", errorsCnt-1);
-				fprintf(outfile, "\t\t\terrors(%d downto %d) => errorVecPO\n", 2*errorsCnt-1, errorsCnt);
+				fprintf(outfile, "\t\t\terrors(%d downto 0) => sig_errorVec,\n", errorsCnt-1);
+				fprintf(outfile, "\t\t\terrors(%d downto %d) => sig_errorVecPO\n", 2*errorsCnt-1, errorsCnt);
 			} else {
 				for(i=circ->POs.size(); i < errorsCnt*3; i++){
 					fprintf(outfile, "\tc0_cmp_outvec(%d) <= '0';\n", i);
@@ -316,10 +336,17 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 				fprintf(outfile, "\t\t\tinVecA(%d downto %d) => c0_cmp_outvec,\n", errorsCnt*6-1, errorsCnt*3);
 				fprintf(outfile, "\t\t\tinVecB(%d downto 0) => c1_cmp_outvec,\n", errorsCnt*3-1);
 				fprintf(outfile, "\t\t\tinVecB(%d downto %d) => c1_cmp_outvec,\n", errorsCnt*6-1, errorsCnt*3);
-				fprintf(outfile, "\t\t\terrors(%d downto 0) => errorVec,\n", errorsCnt-1);
-				fprintf(outfile, "\t\t\terrors(%d downto %d) => errorVecPO\n", 2*errorsCnt-1, errorsCnt);
+				fprintf(outfile, "\t\t\terrors(%d downto 0) => sig_errorVec,\n", errorsCnt-1);
+				fprintf(outfile, "\t\t\terrors(%d downto %d) => sig_errorVecPO\n", 2*errorsCnt-1, errorsCnt);
 			}
 			fprintf(outfile, "\t\t);\n");
+
+			if( options[OPT_E_AGGREG] && options[OPT_ERROR_PO_SAMEW] ){
+				fprintf(outfile, "\n\terrorVec(%d downto 1) <= sig_errorVec;\n", errorsCnt);
+				fprintf(outfile, "\terrorVec(0) <= errorDetected;\n");
+				fprintf(outfile, "\terrorVecPO(%d downto 1) <= sig_errorVecPO;\n", errorsCnt);
+				fprintf(outfile, "\terrorVecPO(0) <= errorDetectedPO;\n\n");
+			}
 		} else {
 			if(options[OPT_ERROR_PO_SAMEW]) {
 				fprintf(stderr, "%s %d : DON'T KNOW WHAT TO DO!!!!\n", __FILE__, __LINE__);
@@ -339,13 +366,13 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 		if(errorsCnt > 1){
 			fprintf(outfile, "\terror_aggreg : multiple_input_or\n");
 			fprintf(outfile, "\t\tport map (\n");
-			fprintf(outfile, "\t\t\tinput_vec => errorVec,\n");
+			fprintf(outfile, "\t\t\tinput_vec => sig_errorVec,\n");
 			fprintf(outfile, "\t\t\toutput => errorDetected\n");
 			fprintf(outfile, "\t);\n");
 			if(options[OPT_2RAIL]){
 				fprintf(outfile, "\terror_aggreg2 : multiple_input_or\n");
 				fprintf(outfile, "\t\tport map (\n");
-				fprintf(outfile, "\t\t\tinput_vec => errorVecPO,\n");
+				fprintf(outfile, "\t\t\tinput_vec => sig_errorVecPO,\n");
 				fprintf(outfile, "\t\t\toutput => errorDetectedPO\n");
 				fprintf(outfile, "\t);\n");
 			}
@@ -357,6 +384,4 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 	}
 	
 	fprintf(outfile, "end Structure;\n");
-		
-	
 }

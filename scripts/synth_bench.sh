@@ -9,8 +9,8 @@ if [ "$(expr substr $(uname -s) 1 6)" == "CYGWIN" ];then
     PAR=$ISE_PATH"/par.exe"
     BITGEN=$ISE_PATH"/bitgen.exe"
 else 
-    #ISE_PATH="/opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64"
-    ISE_PATH="/opt/Xilinx/13.4/ISE_DS/ISE/bin/lin"
+    ISE_PATH="/opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64"
+    #ISE_PATH="/opt/Xilinx/13.4/ISE_DS/ISE/bin/lin"
     XST=$ISE_PATH"/xst"
     NGDBUILD=$ISE_PATH"/ngdbuild"
     MAP=$ISE_PATH"/map"

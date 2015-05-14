@@ -1,5 +1,6 @@
 for i in benches/*
 do
+	rm -f $i/project.prj
 	nome=$(echo $i | sed 's/benches\///')
 	for vhds in $i/*.vhd
 	do

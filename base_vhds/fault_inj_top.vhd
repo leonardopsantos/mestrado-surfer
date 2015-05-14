@@ -52,7 +52,7 @@ architecture Behavioral of fault_inj_top is
 				  );
 	end component;
 	
-	component BENCH_NAME_ft is
+	component BENCH_NAME is
 	  port (
 		 inputVector : in STD_LOGIC_VECTOR ( CUT_INPUT_WIDTH-1 downto 0 );
 		 inputs_copy : in STD_LOGIC_VECTOR ( CUT_INPUT_WIDTH-1 downto 0 );
@@ -85,7 +85,7 @@ begin
 				  errorVec		=> cut_errorVec
 	);
 
-	cut : BENCH_NAME_ft
+	cut : BENCH_NAME
 	port map ( inputVector	=> cut_inputs,
 				  outputVector	=> cut_outputs,
 				  inputs_copy	=> cut_inputs2,
