@@ -178,7 +178,7 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 				}
 			}
 	if(options[OPT_DUPLICATE_PI]){
-		fprintf(outfile, "    inputs_copy : in STD_LOGIC_VECTOR ( %d downto 0 );\n", circ->PIs.size()-circ->clocks.size()-ft->rstPICnt-1);
+		fprintf(outfile, "    inputs_copy : in STD_LOGIC_VECTOR ( %ld downto 0 );\n", circ->PIs.size()-circ->clocks.size()-ft->rstPICnt-1);
 		for(i=0; i<ft->rstPICnt; i++)
 			fprintf(outfile, "    rst_copy_%d : in STD_LOGIC;\n", i);
 	}
@@ -207,8 +207,8 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 		}
 	
 	if(options[OPT_MERGE_IO]){
-		fprintf(outfile, "    inputVector_merge : in STD_LOGIC_VECTOR ( %d downto 0 );\n", circ->PIs.size()-1);
-		fprintf(outfile, "    outputVector_merge : out STD_LOGIC_VECTOR ( %d downto 0 );\n", circ->POs.size()-1);
+		fprintf(outfile, "    inputVector_merge : in STD_LOGIC_VECTOR ( %ld downto 0 );\n", circ->PIs.size()-1);
+		fprintf(outfile, "    outputVector_merge : out STD_LOGIC_VECTOR ( %ld downto 0 );\n", circ->POs.size()-1);
 	}
 	
 	if(options[OPT_RSPLIT]){
@@ -219,7 +219,7 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 		if(options[OPT_E_AGGREG])
 			fprintf(outfile, "    errorDetectedPO : out STD_LOGIC;\n");
 		else
-			fprintf(outfile, "    errorVecPO : out STD_LOGIC_VECTOR ( %d downto 0 );\n", ft->POCheckers.size()-1);
+			fprintf(outfile, "    errorVecPO : out STD_LOGIC_VECTOR ( %ld downto 0 );\n", ft->POCheckers.size()-1);
 	}
 	
 	if(options[OPT_E_AGGREG]) //if the error aggregation circuit is to be printed, then the error output is a single bit
@@ -264,7 +264,7 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 		
 	//declares the error vector for PO checking
 	if(options[OPT_2RAIL] & options[OPT_E_AGGREG])
-		fprintf(outfile, "  signal errorVecPO : STD_LOGIC_VECTOR ( %d downto 0 );\n", ft->POCheckers.size()-1);
+		fprintf(outfile, "  signal errorVecPO : STD_LOGIC_VECTOR ( %ld downto 0 );\n", ft->POCheckers.size()-1);
 	
 	//declares the nets internal signals
 	//PIs may be declared here if IO merging is activated
@@ -280,14 +280,14 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 		}
 	
 	if(ft->duplicatedFFs.size() > 0)
-		fprintf(outfile, "  signal duplicated_FF_Q : STD_LOGIC_VECTOR( %d downto 0 );\n", ft->duplicatedFFs.size()-1);
+		fprintf(outfile, "  signal duplicated_FF_Q : STD_LOGIC_VECTOR( %ld downto 0 );\n", ft->duplicatedFFs.size()-1);
 	
 	if(options[OPT_CCHAIN] || options[OPT_DUPLICATE_MUXES]) {
 		if(ft->selectedCliques[1].size() + ft->selectedCliquesMuxFx[1].size() > 0)
-			fprintf(outfile, "  signal unpaired_LUTs_DWC : STD_LOGIC_VECTOR ( %d downto 0 );\n", ft->selectedCliques[1].size() + ft->selectedCliquesMuxFx[1].size() - 1);
+			fprintf(outfile, "  signal unpaired_LUTs_DWC : STD_LOGIC_VECTOR ( %ld downto 0 );\n", ft->selectedCliques[1].size() + ft->selectedCliquesMuxFx[1].size() - 1);
 	} else {
 		if(ft->selectedCliques[1].size() > 0)
-			fprintf(outfile, "  signal unpaired_LUTs_DWC : STD_LOGIC_VECTOR ( %d downto 0 );\n", ft->selectedCliques[1].size()-1);
+			fprintf(outfile, "  signal unpaired_LUTs_DWC : STD_LOGIC_VECTOR ( %ld downto 0 );\n", ft->selectedCliques[1].size()-1);
 	}
 	
 	//declares the nets for parity prediction
@@ -304,7 +304,7 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 		
 	//declares the nets used for FF input comparison
 	if(options[OPT_FF_INPUT_CMP])
-		fprintf(outfile, "  signal ff_cmp0, ff_cmp1 : STD_LOGIC_VECTOR ( %d downto 0 );\n", circ->ffs.size() + circ->POs.size() + circ->sets.size() - circ->constInputFFs - 1);
+		fprintf(outfile, "  signal ff_cmp0, ff_cmp1 : STD_LOGIC_VECTOR ( %ld downto 0 );\n", circ->ffs.size() + circ->POs.size() + circ->sets.size() - circ->constInputFFs - 1);
 		
 	POsNames.clear();
 	
@@ -321,14 +321,14 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 	
 	//prints the nets from the duplicated Muxes (F7 and F8)
 	if(ft->duplicatedMuxFx.size() > 0)
-		fprintf(outfile, "  signal muxf_dwc : STD_LOGIC_VECTOR ( %d downto 0 );\n", ft->duplicatedMuxFx.size()-1);
+		fprintf(outfile, "  signal muxf_dwc : STD_LOGIC_VECTOR ( %ld downto 0 );\n", ft->duplicatedMuxFx.size()-1);
 	
 	if(options[OPT_RSPLIT] && ft->splitLutsCnt > 0)
 		fprintf(outfile, "  signal splitNet : STD_LOGIC_VECTOR ( %d downto 0 );\n", ft->splitLutsCnt-1);
 	
 	//vectors that are input to the comparator modules
 	if(!options[OPT_NO_CMP_MODULE])
-		fprintf(outfile, "  signal outvec_PO_cmp0, outvec_PO_cmp1 : STD_LOGIC_VECTOR ( %d downto 0 );\n", circ->POs.size()-1);
+		fprintf(outfile, "  signal outvec_PO_cmp0, outvec_PO_cmp1 : STD_LOGIC_VECTOR ( %ld downto 0 );\n", circ->POs.size()-1);
 	
 	fprintf(outfile, "begin\n"); /****************************************************/
 	//Shorts instatiation************************************************************
@@ -361,7 +361,7 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 			if(ft->POCheckers.size() > 1){
 				fprintf(outfile, "  error_aggreg_PO : multiple_input_or\n");
 				fprintf(outfile, "    generic map (\n");
-				fprintf(outfile, "      GATE_INPUT_SIZE => %d,\n", ft->POCheckers.size());
+				fprintf(outfile, "      GATE_INPUT_SIZE => %ld,\n", ft->POCheckers.size());
 				fprintf(outfile, "      LOG_GATE_INPUT_SIZE => %d\n", (int) ceil(log(ft->POCheckers.size())/log(2)));
 				fprintf(outfile, "  )\n");
 				fprintf(outfile, "    port map (\n");
@@ -426,8 +426,8 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 			
 			fprintf(outfile, "  po_checker : comparator\n");
 			fprintf(outfile, "    generic map (\n");
-			fprintf(outfile, "      IN_WIDTH => %d,\n", circ->POs.size());
-			fprintf(outfile, "      OUT_WIDTH => %d\n", ft->POCheckers.size());
+			fprintf(outfile, "      IN_WIDTH => %ld,\n", circ->POs.size());
+			fprintf(outfile, "      OUT_WIDTH => %ld\n", ft->POCheckers.size());
 			fprintf(outfile, "    )\n");
 			fprintf(outfile, "    port map (\n");
 			fprintf(outfile, "      inVecA => outvec_PO_cmp0,\n");
@@ -465,30 +465,30 @@ void XSynthOut::printOutput(Circuit* circIn, ftXilinx* ftIn, const char* filenam
 		}
 		
 		for(i=0; i<circ->POs.size(); i++)
-				fprintf(outfile, "  ff_cmp0(%d) <= %s;\n", i+circ->ffs.size()-circ->constInputFFs, circ->POs[i]->getName().c_str());
+				fprintf(outfile, "  ff_cmp0(%ld) <= %s;\n", i+circ->ffs.size()-circ->constInputFFs, circ->POs[i]->getName().c_str());
 
 		for(i=0; i<circ->POs.size(); i++){
 			if(ft->duplicatedNet.count(circ->POs[i]) == 0){
 				cout << "PO: " << circ->POs[i]->getName() << " without replica - XSynthOut" << endl;
 				exit(0);
 			}
-			fprintf(outfile, "  ff_cmp1(%d) <= %s;\n", i+circ->ffs.size()-circ->constInputFFs, ft->duplicatedNet[circ->POs[i]]->getName().c_str());
+			fprintf(outfile, "  ff_cmp1(%ld) <= %s;\n", i+circ->ffs.size()-circ->constInputFFs, ft->duplicatedNet[circ->POs[i]]->getName().c_str());
 		}
 		
 		i=0;
 		foreach(Net* setNet, circ->sets){
-			fprintf(outfile, "  ff_cmp0(%d) <= %s;\n", i+circ->ffs.size()+circ->POs.size()-circ->constInputFFs, setNet->getName().c_str());
+			fprintf(outfile, "  ff_cmp0(%ld) <= %s;\n", i+circ->ffs.size()+circ->POs.size()-circ->constInputFFs, setNet->getName().c_str());
 			if(ft->duplicatedNet.count(setNet) == 0){
 					cout << "set net " << setNet->getName() << " without a copy - XSynthOut" << endl;
 					exit(0);
 			}
-			fprintf(outfile, "  ff_cmp1(%d) <= %s;\n", i+circ->ffs.size()+circ->POs.size()-circ->constInputFFs, ft->duplicatedNet[setNet]->getName().c_str());
+			fprintf(outfile, "  ff_cmp1(%ld) <= %s;\n", i+circ->ffs.size()+circ->POs.size()-circ->constInputFFs, ft->duplicatedNet[setNet]->getName().c_str());
 			i++;
 		}
 		
 		fprintf(outfile, "  ff_checker : comparator\n");
 		fprintf(outfile, "    generic map (\n");
-		fprintf(outfile, "      IN_WIDTH => %d,\n", circ->ffs.size() + circ->POs.size() + circ->sets.size() - circ->constInputFFs);
+		fprintf(outfile, "      IN_WIDTH => %ld,\n", circ->ffs.size() + circ->POs.size() + circ->sets.size() - circ->constInputFFs);
 		fprintf(outfile, "      OUT_WIDTH => %d\n", ft->errorsCnt);
 		fprintf(outfile, "    )\n");
 		fprintf(outfile, "    port map (\n");

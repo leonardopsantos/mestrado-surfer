@@ -327,7 +327,7 @@ Lut* ftXilinx::genPOChecker(vector<Net*> &POVec, char* name){
 			}	
 	}
 	
-	snprintf(newName, 128, "errorVecPO(%d)", POCheckers.size());
+	snprintf(newName, 128, "errorVecPO(%ld)", POCheckers.size());
 	outNet = new Net(newName, 0);
 	newLut->outputs.push_back(outNet);
 	

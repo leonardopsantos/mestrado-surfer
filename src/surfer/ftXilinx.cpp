@@ -1362,7 +1362,7 @@ void ftXilinx::generateCChainCED(vector<vector<set<unsigned> > > &selectedClique
 		for(j=0; j<group.size(); j+=4){
 			//instantiate a new checker stage (i.e., 4 LUTs or 1 slice)
 			if(stacked)
-				snprintf(buf, 128, "stacked_cChain_checker_%d_%d", nextCheckId, group.size());
+				snprintf(buf, 128, "stacked_cChain_checker_%d_%ld", nextCheckId, group.size());
 			else
 				snprintf(buf, 128, "cChain_checker_%d", nextCheckId);
 			newAdder = new Adder(buf, nextCheckId++);

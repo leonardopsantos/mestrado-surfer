@@ -24,6 +24,8 @@ Component::Component(){
 	depth = 0;
 	pred = NULL;
 	checker = NULL;
+	id = 0;
+	type = UNKNOWN;
 	return;
 }
 
@@ -116,7 +118,7 @@ void Lut::printTable(FILE* outfile){
 void Lut::print(FILE* outfile){
 	int i;
 	
-	fprintf(outfile, "  %s : LUT%d\n", name.c_str(), inputs.size());
+	fprintf(outfile, "  %s : LUT%ld\n", name.c_str(), inputs.size());
 	fprintf(outfile, "    generic map (\n");
 	fprintf(outfile, "      INIT => X\"");
 	printTable(outfile);
@@ -132,7 +134,7 @@ void Lut::print(FILE* outfile){
 void Lut::print(FILE* outfile, map<Net*, Net*> &duplicatedNet){
 	int i;
 	
-	fprintf(outfile, "  %s : LUT%d\n", name.c_str(), inputs.size());
+	fprintf(outfile, "  %s : LUT%ld\n", name.c_str(), inputs.size());
 	fprintf(outfile, "    generic map (\n");
 	fprintf(outfile, "      INIT => X\"");
 	printTable(outfile);
@@ -151,7 +153,7 @@ void Lut::print(FILE* outfile, map<Net*, Net*> &duplicatedNet){
 void Lut::print(FILE* outfile, map<Net*, Net*> &duplicatedNet, map<Net*, unsigned> &copyIdx, map<Net*, vector<Component*> > &rSplitLuts){
 	int i;
 	
-	fprintf(outfile, "  %s : LUT%d\n", name.c_str(), inputs.size());
+	fprintf(outfile, "  %s : LUT%ld\n", name.c_str(), inputs.size());
 	fprintf(outfile, "    generic map (\n");
 	fprintf(outfile, "      INIT => X\"");
 	printTable(outfile);
@@ -190,7 +192,7 @@ void Lut::print(FILE* outfile, map<Net*, Net*> &duplicatedNet, map<Net*, unsigne
 void Lut::printChecker(FILE* outfile, map<Net*, vector<Component*> > &rSplitLuts){
 	int i;
 	
-	fprintf(outfile, "  %s : LUT%d\n", name.c_str(), inputs.size());
+	fprintf(outfile, "  %s : LUT%ld\n", name.c_str(), inputs.size());
 	fprintf(outfile, "    generic map (\n");
 	fprintf(outfile, "      INIT => X\"");
 	printTable(outfile);
@@ -214,7 +216,7 @@ void Lut::printChecker(FILE* outfile, map<Net*, vector<Component*> > &rSplitLuts
 void Lut::printDAdjCheck(FILE* outfile, map<Net*, Net*> &duplicatedNet, map<Net*, vector<Component*> > &rSplitLuts){
 	int i;
 	
-	fprintf(outfile, "  %s : LUT%d\n", name.c_str(), inputs.size());
+	fprintf(outfile, "  %s : LUT%ld\n", name.c_str(), inputs.size());
 	fprintf(outfile, "    generic map (\n");
 	fprintf(outfile, "      INIT => X\"");
 	printTable(outfile);
