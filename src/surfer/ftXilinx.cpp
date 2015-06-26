@@ -119,6 +119,26 @@ void ftXilinx::fetchInfo(){
 	exit(0);
 }
 
+//build fault tolerant circuit with selective DWC
+void ftXilinx::buildFtSelectiveCirc(){
+	int i;
+	cout << "-------Input circuit:\n";
+	cout << " " << circ->luts.size() << " LUTs\n";
+	cout << " " << circ->ffs.size() << " FFs\n";
+	cout << " " << circ->components.size() << " other components\n";
+	cout << " " << circ->PIs.size() << " PIs\n";
+	cout << " " << circ->POs.size() << " POs\n";
+	cout << " " << circ->nets.size() << " Nets\n";
+	cout << "---------------------" << endl;
+
+	if(options[OPT_DWSF]) {
+		cout << "Build Fine-Grained Selective DWC Circuit" << endl;
+		buildDWC(selectedCliques, circ->luts);
+	}
+
+//	if(options[OPT_2RAIL])
+//		insertOutputCmp();
+}
 
 /*************************************************************************/
 //build fault tolerant circuit

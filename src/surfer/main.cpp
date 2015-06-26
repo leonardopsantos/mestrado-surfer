@@ -11,6 +11,7 @@
 #include "ftXilinx.h"
 #include "XSynthOut.h"
 #include "XDWCCOut.h"
+#include "XDWSFOut.h"
 #include <cstdlib>
 
 bool options[OPT_CNT];
@@ -46,6 +47,7 @@ int main(int argc, char *argv[]){
 		cout << "-ncmp : Do not use the comparator module" << endl;
 		cout << "-ffc: Flip-flop inputs and POs comparison only" << endl;
 		cout << "-epws: Make comparator width the same as the # of POs" << endl;
+		cout << "-dwsf: Use only DWC with selective fine comparison grain" << endl; //*
 		exit(0);
 	}
 
@@ -78,6 +80,10 @@ int main(int argc, char *argv[]){
 				}
 				if(strstr(argv[i], "-epws")){
 					options[OPT_ERROR_PO_SAMEW] = true;
+					continue;
+				}
+				if(strstr(argv[i], "-dwsf")){
+					options[OPT_DWSF] = true;
 					continue;
 				}
 				break;
@@ -222,9 +228,16 @@ int main(int argc, char *argv[]){
 		cout << "Invalid maximum group size" << endl;
 		exit(0);
 	}
-
-	if(options[OPT_DWCF] && options[OPT_DWCC]){
-		cout << "-dwcf and -dwcc not supported concurrently" << endl;
+	if(options[OPT_DWCF] && (options[OPT_DWSF] || options[OPT_DWCC]) ) {
+		cout << "-dwcf -dwsf -dwcc not supported concurrently" << endl;
+		exit(0);
+	}
+	if(options[OPT_DWSF] && (options[OPT_DWCF] || options[OPT_DWCC]) ) {
+		cout << "-dwcf -dwsf -dwcc not supported concurrently" << endl;
+		exit(0);
+	}
+	if(options[OPT_DWCC] && (options[OPT_DWSF] || options[OPT_DWCF]) ) {
+		cout << "-dwcf -dwsf -dwcc not supported concurrently" << endl;
 		exit(0);
 	}
 	if(options[OPT_AGGRESSIVE] && (options[OPT_DWCF] || options[OPT_DWCC])){
@@ -246,7 +259,9 @@ int main(int argc, char *argv[]){
 	
 	char filename[512];
 	bool changed_folder = false;
-	
+
+	memset(filename, '\0', sizeof(filename));
+
 	for(i=0; argv[1][i] != 0 && argv[1][i] != '.'; i++){
 		filename[i] = argv[1][i];
 		if(!changed_folder && filename[i] == '/'){
@@ -254,50 +269,33 @@ int main(int argc, char *argv[]){
 			filename[++i] = 'o';
 		}
 	}
-		
-	filename[i++]='_';
-	filename[i++]='f';
-	filename[i++]='t';
-	if(options[OPT_E_AGGREG]){
-		filename[i++]='_';
-		filename[i++]='e';
-		filename[i++]='a';
+
+	strcat(filename, "_ft");
+
+	if(options[OPT_E_AGGREG]) {
+		strcat(filename, "_ea");
 	}
 	if(options[OPT_DWCF]){
-		filename[i++]='_';
-		filename[i++]='d';
-		filename[i++]='f';
+		strcat(filename, "_df");
 	}
 	if(options[OPT_DWCC]){
-		filename[i++]='_';
-		filename[i++]='d';
-		filename[i++]='c';
+		strcat(filename, "_dc");
 	}
 	if(options[OPT_DUPLICATE_PI]){
-		filename[i++]='_';
-		filename[i++]='d';
-		filename[i++]='i';
+		strcat(filename, "_di");
 	}
-	if(options[OPT_ERROR_PO_SAMEW]){
-		filename[i++]='_';
-		filename[i++]='e';
-		filename[i++]='w';
-		filename[i++]='p';
-		filename[i++]='s';
+	if(options[OPT_DWSF]){
+		strcat(filename, "_dsf");
 	}
-	filename[i++]='.';
-	filename[i++]='v';
-	filename[i++]='h';
-	filename[i++]='d';
-	filename[i]=0;
-	
+	strcat(filename, ".vhd");
+
 	Circuit circ;
 	XSynthParser parser;
 	XSynthOut writer;
 	XDWCCOut dwccOut;
 	
 	parser.parse(argv[1], circ);
-	
+
 	if(options[OPT_DWCC]){
 		dwccOut.printOutput(&circ, filename);
 		
@@ -307,7 +305,18 @@ int main(int argc, char *argv[]){
 	ftXilinx ft(&circ);
 	ft.maxCheckerSize = maxcheck;
 	ft.maxGroupSize = maxgroup;
-	ft.buildFtCirc();
-	
+
+	if(options[OPT_DWSF]){
+		//circ.printLutsFanout();
+		XDWSFOut dwsfOut;
+		dwsfOut.buildLogicCones(circ);
+		return 0;
+		ft.buildFtSelectiveCirc();
+	}
+
+	if(options[OPT_DWCF]){
+		ft.buildFtCirc();
+	}
+
 	writer.printOutput(&circ, &ft, filename);
 }

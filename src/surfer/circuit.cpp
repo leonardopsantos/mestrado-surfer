@@ -6,6 +6,8 @@
  */
 /*************************************************************************/
 
+#include <fstream>
+
 #include "circuit.h"
 
 using namespace std;
@@ -397,4 +399,93 @@ void FlipFlop::print(FILE* outfile){
 		default:
 			printf("Unknown FF type %d\n", type);
 	}	
+
+}
+
+void Circuit::printLutsFanout(void) {
+
+
+//	std::sort(nets.begin(), nets.end(), Net::fanoutCompare());
+
+
+//	cout << "LUTs = " << luts.size() << "\n";
+
+	vector<Lut*>::iterator lut_it;
+	vector<Net*>::iterator net_it;
+
+	int max;
+	max = 0;
+
+	for(lut_it = luts.begin(); lut_it < luts.end(); lut_it++) {
+		Lut *l = *lut_it;
+//		cout << "Lut "<< l->name << "fanout " << l->outputs.size() << "\n";
+		for(net_it = l->outputs.begin(); net_it < l->outputs.end(); net_it++) {
+			Net* pNet = *net_it;
+			if( pNet->outputs.size() > 0 && pNet->outputs.size() > max )
+				max = pNet->outputs.size();
+		}
+	}
+
+	std::vector<int> histogram(max+1);
+
+	for(lut_it = luts.begin(); lut_it < luts.end(); lut_it++) {
+		Lut *l = *lut_it;
+//		cout << "Lut "<< l->name << "fanout " << l->outputs.size() << "\n";
+		for(net_it = l->outputs.begin(); net_it < l->outputs.end(); net_it++) {
+			Net* pNet = *net_it;
+			if( pNet->outputs.size() > 0 ) {
+				histogram[pNet->outputs.size()] += 1;
+			} else if( pNet->isPO == true ) {
+				histogram[1] += 1;
+			} else {
+				histogram[0] += 1;
+			}
+		}
+	}
+
+#if 0
+
+	for(net_it = nets.begin(); net_it < nets.end(); net_it++) {
+		Net* pNet = *net_it;
+#if 0
+		cout << "    net "<< pNet->name;
+		if( pNet->isPI == true )
+			cout << "(PI)";
+		if( pNet->isPO == true )
+			cout << "(PO)";
+		if( pNet->input != NULL )
+			cout << " driven by "<< pNet->input->name;
+		if( pNet->outputs.size() > 0 )
+			cout << " fanout "<< pNet->outputs.size() <<"\n";
+		cout << "\n";
+#endif
+
+#if 0
+		if( pNet->isPI == false  && pNet->isPO == false ) {
+			count++;
+			mean_fanout += pNet->outputs.size();
+			if( pNet->outputs.size() > 0 && pNet->outputs.size() > max )
+				max = pNet->outputs.size();
+		}
+	}
+	std::vector<int> histogram(max+1);
+	for(net_it = nets.begin(); net_it < nets.end(); net_it++) {
+		Net* pNet = *net_it;
+		if( pNet->isPI == false && pNet->isPO == false ) {
+			if( pNet->outputs.size() > 0 )
+				histogram[pNet->outputs.size()] += 1;
+			else
+				histogram[0] += 1;
+		}
+	}
+#endif
+
+#endif
+
+	cout << "# GNUplot data for " << this->name <<"\n";
+	cout << "# fanout\tfrequency\n";
+	vector<int>::iterator iit;
+	for(iit = histogram.begin(); iit < histogram.end(); iit++) {
+		cout << "  "<< iit - histogram.begin() << "\t\t" << *iit << "\n";
+	}
 }

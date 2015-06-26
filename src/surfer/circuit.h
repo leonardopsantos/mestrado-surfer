@@ -11,11 +11,13 @@
 
 #include <string>
 #include <vector>
+#include <list>
 #include <map>
 #include <set>
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
+#include <utility>
 #include "common.h"
 
 using namespace std;
@@ -63,6 +65,9 @@ class Component {
 		int locY; //The Y position of the slice this LUT is in
 		virtual void print(FILE* outfile); //prints the VHDL instanciation of this component
 		~Component();
+
+		list<std::pair<Net*, int> > logicConePOs; //POs driven by this, paired with logic depth
+		list<std::pair<Net*, int> > logicConePIs; //PIs that drive this, paired with logic depth
 };
 
 class FlipFlop: public Component {
@@ -132,7 +137,9 @@ class Net {
 		
 		vector<Component*> outputs; //Components that read this signal
 		Component* input; //The component that writes in this signal
-		
+
+		list<std::pair<Component*, int> > luts; //LUTs that drive this Net if it's a PO, paired with depth
+
 		string name;
 		
 		sigVal value; //if this net has a constant value or if it is variable
@@ -141,6 +148,17 @@ class Net {
 		~Net(); //class destructor
 		void setInput(Component* newInput, sigVal newVal=VARSIG); //assigns a new input or constant value to the net
 		string getName(); //gets the net name, with the "internal_" prefix, if required
+		struct fanoutCompare {
+		      bool operator()(const Net* l, const Net* r) { return l->outputs.size() >= r->outputs.size();}
+		    };
+//		bool operator<(const Net &rhs) const {
+//			if( outputs.size() == 0 )
+//				return false;
+//			if( rhs.outputs.size() == 0 )
+//				return true;
+//			return outputs.size() < rhs.outputs.size();
+//		}
+//		bool operator<(const Net &rhs) const { return outputs.size() < rhs.outputs.size(); }
 };
 
 class Circuit {
@@ -162,6 +180,8 @@ class Circuit {
 		vector<Net*> POs;
 	
 		string name;
+
+		void printLutsFanout(void);
 };
 
 #endif
