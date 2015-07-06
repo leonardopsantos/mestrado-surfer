@@ -8,6 +8,7 @@
 
 #include "circuit.h"
 #include "XSynthParser.h"
+#include "XMapParser.h"
 #include "ftXilinx.h"
 #include "XSynthOut.h"
 #include "XDWCCOut.h"
@@ -47,7 +48,7 @@ int main(int argc, char *argv[]){
 		cout << "-ncmp : Do not use the comparator module" << endl;
 		cout << "-ffc: Flip-flop inputs and POs comparison only" << endl;
 		cout << "-epws: Make comparator width the same as the # of POs" << endl;
-		cout << "-dwsf: Use only DWC with selective fine comparison grain" << endl; //*
+		cout << "-dwsf <input_file>: Use only DWC with selective fine comparison grain" << endl; //*
 		exit(0);
 	}
 
@@ -55,6 +56,8 @@ int main(int argc, char *argv[]){
 	int maxcheck = DEFAULT_MAXCHECK_CC;
 	int maxgroup = DEFAULT_MAXGROUP_CC;
 	
+	std::string post_map_vhd;
+
 	for(i=0; i<OPT_CNT; i++)
 		options[i] = false;
 	
@@ -84,6 +87,11 @@ int main(int argc, char *argv[]){
 				}
 				if(strstr(argv[i], "-dwsf")){
 					options[OPT_DWSF] = true;
+					if( i == argc-1 ) {
+						cout << "Need post-mapping vhdl file for -dwsf option!!" << endl; //*
+						exit(0);
+					}
+					post_map_vhd.append(argv[++i]);
 					continue;
 				}
 				break;
@@ -291,6 +299,7 @@ int main(int argc, char *argv[]){
 
 	Circuit circ;
 	XSynthParser parser;
+	XMapParser MapParser;
 	XSynthOut writer;
 	XDWCCOut dwccOut;
 	
@@ -307,9 +316,11 @@ int main(int argc, char *argv[]){
 	ft.maxGroupSize = maxgroup;
 
 	if(options[OPT_DWSF]){
+		Circuit circ_cpy0, circ_cpy1;
 		//circ.printLutsFanout();
 		XDWSFOut dwsfOut;
 		dwsfOut.buildLogicCones(circ);
+		MapParser.parse(argv[1], circ, post_map_vhd, circ_cpy0, circ_cpy1);
 		return 0;
 		ft.buildFtSelectiveCirc();
 	}

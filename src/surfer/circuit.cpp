@@ -7,11 +7,11 @@
 /*************************************************************************/
 
 #include <fstream>
+#include <cstdio>
 
 #include "circuit.h"
 
 using namespace std;
-
 
 void Component::print(FILE* outfile){
 	printf("Can't print type %d\n", type);
@@ -33,6 +33,19 @@ Component::Component(){
 
 Component::~Component(){
 	//cout << "deleting: " << name << "; id = " << id << endl;
+}
+
+/**
+ * Print the LOC constrain for a component, prepend the instance description with the string a
+ * @param a String to prepend to the instance description
+ * @param file Output stream to write to
+ */
+void Component::printLOC(string a, ofstream& file)
+{
+	if( file.is_open() == false )
+		return;
+
+	file << "INST \"" << a << this->name << "\" LOC=" << this->LOC << ";\n";
 }
 
 /*************************************************************************/
@@ -488,4 +501,45 @@ void Circuit::printLutsFanout(void) {
 	for(iit = histogram.begin(); iit < histogram.end(); iit++) {
 		cout << "  "<< iit - histogram.begin() << "\t\t" << *iit << "\n";
 	}
+}
+
+/**
+ * Clears members
+ */
+void Circuit::clear() {
+	this->components.clear();
+	this->nets.clear();
+	this->luts.clear();
+	this->PIs.clear();
+	this->POs.clear();
+	this->clocks.clear();
+	this->resets.clear();
+	this->sets.clear();
+	this->ffs.clear();
+	this->vccNet = NULL;
+	this->gndNet = NULL;
+}
+
+Lut* Circuit::GetLutByName(string name)
+{
+	vector<Lut*>::iterator lut_it;
+
+	for(lut_it = this->luts.begin(); lut_it < this->luts.end(); lut_it++) {
+		Lut *l = *lut_it;
+		if( l->name == name )
+			return l;
+	}
+	return NULL;
+}
+
+Net* Circuit::GetNetByName(string name)
+{
+	vector<Net*>::iterator net_it;
+
+	for(net_it = this->nets.begin(); net_it < this->nets.end(); net_it++) {
+		Net *n = *net_it;
+		if( n->name == name )
+			return n;
+	}
+	return NULL;
 }

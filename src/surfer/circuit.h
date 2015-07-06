@@ -38,7 +38,7 @@ using namespace std;
 //ZERO: component that sets a signal to GND permanently
 //ONE: component that sets a signal to VCC permanently
 enum compType { LUT, LUT6, LUT5, MUXF7, MUXF8, MUXCY, XORCY, MUX, BUF, INV, FDR, 
-		FDRE, FDRS, FDRSE, ADDER, DSP48E, SHORT, ZERO, ONE, UNKNOWN };
+		FDRE, FDRS, FDRSE, ADDER, DSP48E, SHORT, ZERO, ONE, X_ROC, X_TOC, UNKNOWN };
 
 //possible signal values:
 //GND: signal has constant value zero
@@ -61,9 +61,11 @@ class Component {
 		float depth;
 	
 		string name; //The LUT's name
+		string LOC; //LOC constrain
 		int locX; //The X position of the slice this LUT is in
 		int locY; //The Y position of the slice this LUT is in
-		virtual void print(FILE* outfile); //prints the VHDL instanciation of this component
+		virtual void print(FILE* outfile); //prints the VHDL instantiation of this component
+		void printLOC(string a, ofstream& file);
 		~Component();
 
 		list<std::pair<Net*, int> > logicConePOs; //POs driven by this, paired with logic depth
@@ -139,6 +141,7 @@ class Net {
 		Component* input; //The component that writes in this signal
 
 		list<std::pair<Component*, int> > luts; //LUTs that drive this Net if it's a PO, paired with depth
+		list<std::pair<Component*, int> > exclusive_luts; //Subset of luts, LUTs that ONLY drive this Net if it's a PO.
 
 		string name;
 		
@@ -182,6 +185,10 @@ class Circuit {
 		string name;
 
 		void printLutsFanout(void);
+		void clear(void);
+		Lut* GetLutByName(string name);
+		Net* GetNetByName(string name);
+//		void
 };
 
 #endif
