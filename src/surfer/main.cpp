@@ -13,6 +13,7 @@
 #include "XSynthOut.h"
 #include "XDWCCOut.h"
 #include "XDWSFOut.h"
+#include "ftSelectiveXilinx.h"
 #include <cstdlib>
 
 bool options[OPT_CNT];
@@ -307,7 +308,6 @@ int main(int argc, char *argv[]){
 
 	if(options[OPT_DWCC]){
 		dwccOut.printOutput(&circ, filename);
-		
 		exit(0);
 	}
 	
@@ -317,12 +317,11 @@ int main(int argc, char *argv[]){
 
 	if(options[OPT_DWSF]){
 		Circuit circ_cpy0, circ_cpy1;
-		//circ.printLutsFanout();
-		XDWSFOut dwsfOut;
-		dwsfOut.buildLogicCones(circ);
 		MapParser.parse(argv[1], circ, post_map_vhd, circ_cpy0, circ_cpy1);
+		ftSelectiveXilinx fts(8);
+		fts.buildFtSelectiveCirc(circ, circ_cpy0, circ_cpy1);
+		XDWSFOut dwsfOut;
 		return 0;
-		ft.buildFtSelectiveCirc();
 	}
 
 	if(options[OPT_DWCF]){

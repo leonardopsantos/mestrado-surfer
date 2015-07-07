@@ -97,7 +97,6 @@ class ftXilinx {
 	public:
 		ftXilinx(Circuit* newCirc); //class constructor
 		void buildFtCirc(); //build fault tolerant circuit
-		void buildFtSelectiveCirc(); //build fault tolerant circuit with selective DWC
 	
 		vector<vector<set<unsigned> > > selectedCliques; //cliques selected during search phase
 		vector<vector<set<unsigned> > > selectedCliquesMuxFx; //cliques selected during search phase
