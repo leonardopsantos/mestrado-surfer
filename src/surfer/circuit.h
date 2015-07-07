@@ -61,7 +61,6 @@ class Component {
 		float depth;
 	
 		string name; //The LUT's name
-		string LOC; //LOC constrain
 		int locX; //The X position of the slice this LUT is in
 		int locY; //The Y position of the slice this LUT is in
 		virtual void print(FILE* outfile); //prints the VHDL instantiation of this component

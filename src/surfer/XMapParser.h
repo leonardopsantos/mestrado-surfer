@@ -21,6 +21,7 @@ class XMapParser: public XSynthParser {
 		static compType string2type(char *src);
 		int findSequence(ifstream &inFile, string seq, string *text_line);
 		int parsePiPos(ifstream &inFile, Circuit &circ);
+		int parseXY(Component *l, char *loc);
 		int parseArchitecture(ifstream &inFile, Circuit &circ);
 
 	public:

@@ -45,7 +45,9 @@ void Component::printLOC(string a, ofstream& file)
 	if( file.is_open() == false )
 		return;
 
-	file << "INST \"" << a << this->name << "\" LOC=" << this->LOC << ";\n";
+	// SLICE_X60Y152
+
+	file << "INST \"" << a << this->name << "\" LOC=SLICE_X" << this->locX << "Y"<< this->locY << ";\n";
 }
 
 /*************************************************************************/

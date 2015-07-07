@@ -187,6 +187,36 @@ int XMapParser::parsePiPos(ifstream &inFile, Circuit &circ)
 }
 
 /**
+ * Parses the LOC IN generic map
+ * @param l Lut to receive the parsed value
+ * @param loc LOC to be parsed
+ * @return 0 if successful, -1 otherwise
+ */
+// Yes, a REGEX would be perfect here. No, I'm not an idiot, I don't use it
+// because g++ 4.8.2 doesn't supports the extented syntax we need for
+// capture groups
+int XMapParser::parseXY(Component *l, char *loc)
+{
+int i;
+char s[128], *p;
+
+	// SLICE_X33Y145
+
+	if( strstr(loc, "SLICE_") == NULL )
+		return -1;
+
+	for(i = 0, p = loc+7; i < sizeof(s)-1 && *p != '\0' && *p != 'Y'; i++)
+		s[i] = *p++;
+
+	s[i] = '\0';
+
+	sscanf(s, "%d", &l->locX);
+	sscanf(p+1, "%d", &l->locY);
+
+	return 0;
+}
+
+/**
  * Parses an architecture defined in the post-mapping simulation model
  * @param inFile Post-mapping simulation model vhdl file
  * @param circ circuit to store the parsed objects
@@ -255,7 +285,9 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					ptr = strchr(bitName, '\"');
 					if( ptr != NULL )
 						*ptr = '\0';
-					newLut->LOC = string(bitName);
+
+					parseXY(newLut, bitName);
+					cout << newLut->name << " LOC = " << bitName << " : X = " << newLut->locX << " Y = " << newLut->locY << "\n";
 
 					inFile.getline(buf, BUF_SIZE); // INIT => X"FCFC0C0C03FCF30C"
 					sscanf(buf, "      INIT => X\"%s\"", lutInit);
@@ -329,7 +361,8 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					if( ptr != NULL )
 						*ptr = '\0';
 
-					newMux->LOC = string(bitName);
+					parseXY(newMux, bitName);
+					cout << newMux->name << " LOC = " << bitName << " : X = " << newMux->locX << " Y = " << newMux->locY << "\n";
 
 					inFile.getline(buf, BUF_SIZE); //skips ")"
 					inFile.getline(buf, BUF_SIZE); //skips "port map("
@@ -852,4 +885,5 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 
 
 // /opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64/netgen -intstyle ise -s 2  -pcf alu4.new.pcf -rpw 100 -tpw 0 -ar Structure -tm fault_inj_top -w -dir netgen/map -ofmt vhdl -sim alu4.new.map.ncd alu4.new_timing_map.vhd
+
 
