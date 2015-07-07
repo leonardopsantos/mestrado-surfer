@@ -285,9 +285,7 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					ptr = strchr(bitName, '\"');
 					if( ptr != NULL )
 						*ptr = '\0';
-
 					parseXY(newLut, bitName);
-					cout << newLut->name << " LOC = " << bitName << " : X = " << newLut->locX << " Y = " << newLut->locY << "\n";
 
 					inFile.getline(buf, BUF_SIZE); // INIT => X"FCFC0C0C03FCF30C"
 					sscanf(buf, "      INIT => X\"%s\"", lutInit);
@@ -360,9 +358,7 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					ptr = strchr(bitName, '\"');
 					if( ptr != NULL )
 						*ptr = '\0';
-
 					parseXY(newMux, bitName);
-					cout << newMux->name << " LOC = " << bitName << " : X = " << newMux->locX << " Y = " << newMux->locY << "\n";
 
 					inFile.getline(buf, BUF_SIZE); //skips ")"
 					inFile.getline(buf, BUF_SIZE); //skips "port map("
@@ -845,19 +841,13 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 
 	// Now we should have all components from the 3 circuits. Check everything is OK.
 
-//	vector<Lut*>::iterator synth_lut_it;
-
-//	for(synth_lut_it = synth_circ.luts.begin(); synth_lut_it < synth_circ.luts.end(); synth_lut_it++) {
-//		Lut *synth_lut = *synth_lut_it;
-//		Lut *cpy0_lut = circ_cpy0.GetLutByName(synth_lut->name);
-//		Lut *cpy1_lut = circ_cpy1.GetLutByName(synth_lut->name);
-//
-//		if( cpy0_lut == NULL || cpy1_lut == NULL )
-//			return -1;
-//	}
+	circ_cpy0.ClearBuffers();
+	circ_cpy1.ClearBuffers();
 
 	ofstream ucf_out;
 	ucf_out.open ("loc.ucf");
+
+	ucf_out << "# LUTs LOC\n";
 
 	vector<Lut*>::iterator cpy0_lut_it;
 
