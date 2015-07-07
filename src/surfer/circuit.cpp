@@ -522,6 +522,18 @@ void Circuit::clear() {
 	this->gndNet = NULL;
 }
 
+Component* Circuit::GetComponentByName(string name)
+{
+	vector<Component*>::iterator comp_it;
+
+	for(comp_it = this->components.begin(); comp_it < this->components.end(); comp_it++) {
+		Component *c = *comp_it;
+		if( c->name == name )
+			return c;
+	}
+	return NULL;
+}
+
 Lut* Circuit::GetLutByName(string name)
 {
 	vector<Lut*>::iterator lut_it;

@@ -878,11 +878,31 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 		}
 	}
 
+	ucf_out << "# Components LOC\n";
+
+	vector<Component*>::iterator cpy0_it;
+
+	for(cpy0_it = circ_cpy0.components.begin(); cpy0_it < circ_cpy0.components.end(); cpy0_it++) {
+		Component *cpy0_lut = *cpy0_it;
+		Component *synth_lut = synth_circ.GetComponentByName(cpy0_lut->name);
+		Component *cpy1_lut = circ_cpy1.GetComponentByName(cpy0_lut->name);
+
+		if( synth_lut == NULL || cpy1_lut == NULL )
+			return -1;
+
+		if ( iscpy0 == true ) {
+			cpy0_lut->printLOC("uut/cpy0/", ucf_out);
+			cpy1_lut->printLOC("uut/cpy1/", ucf_out);
+		} else {
+			cpy0_lut->printLOC("uut/cpy1/", ucf_out);
+			cpy1_lut->printLOC("uut/cpy0/", ucf_out);
+		}
+	}
+
 	ucf_out.close();
 
 	return 0;
 }
-
 
 // /opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64/netgen -intstyle ise -s 2  -pcf alu4.new.pcf -rpw 100 -tpw 0 -ar Structure -tm fault_inj_top -w -dir netgen/map -ofmt vhdl -sim alu4.new.map.ncd alu4.new_timing_map.vhd
 

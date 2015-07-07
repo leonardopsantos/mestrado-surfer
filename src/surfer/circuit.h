@@ -185,6 +185,7 @@ class Circuit {
 
 		void printLutsFanout(void);
 		void clear(void);
+		Component* GetComponentByName(string name);
 		Lut* GetLutByName(string name);
 		Net* GetNetByName(string name);
 //		void
