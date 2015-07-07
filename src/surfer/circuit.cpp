@@ -558,6 +558,100 @@ Net* Circuit::GetNetByName(string name)
 	return NULL;
 }
 
+void Circuit::ClearBuffers()
+{
+	int i;
+	for(i=this->nets.size()-1; i>=0; i--){
+		Net *n;
+		n = this->nets[i];
+		if( n->isPO == false ) {
+			if(!n->isPI && n->input == NULL && n->value == VARSIG){
+				cout << "not PI with NULL input! name: \"" << n->name << "\"" << "i = " << i << endl;
+				exit(0);
+			}
+			if((n->isPI || n->value != VARSIG) || (n->input->type != SHORT && n->input->type != BUF))
+				this->bufCleanup(n, n);
+			else
+				this->nets.erase(this->nets.begin() + i);
+		} else {
+			if( n->input->type != BUF )
+				continue;
+
+			Component *buf = n->input;
+			Net *driver = buf->inputs[0];	// buffers only have one input
+			Component *comp = driver->input;
+
+			if( comp->RemoveOutput(driver) == true ) {
+				comp->outputs.push_back(n);
+				n->input = comp;
+
+				this->RemoveComponent(buf);
+				this->RemoveNet(driver);
+
+				delete buf;
+				delete driver;
+			}
+		}
+	}
+}
+
+bool Circuit::RemoveNet(Net* val)
+{
+	vector<Net*>::iterator net_it;
+	for(net_it = this->nets.begin(); net_it < this->nets.end(); net_it++) {
+		Net *n = *net_it;
+		if( val == n ) {
+			this->nets.erase(net_it);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Circuit::RemoveComponent(Component* val)
+{
+	vector<Component*>::iterator comp_it;
+	for(comp_it = this->components.begin(); comp_it < this->components.end(); comp_it++) {
+		Component *comp = *comp_it;
+		if( val == comp ) {
+			this->components.erase(comp_it);
+			return true;
+		}
+	}
+	return false;
+}
+
+void Circuit::bufCleanup(Net* driver, Net* load)
+{
+	int i, j, k;
+
+	if(!load->isPO){
+		foreach(Component* comp2, load->outputs)
+			if(comp2->type == BUF || comp2->type == SHORT)
+				this->bufCleanup(driver, comp2->outputs[0]);
+
+		for(i=0; i<load->outputs.size(); i++){
+			Component* comp = load->outputs[i];
+			if((comp->type == BUF || comp->type == SHORT) && !comp->outputs[0]->isPO){
+				for(j=0; j<comp->outputs[0]->outputs.size(); j++) //components driven by the buffer output
+					for(k=0; k<comp->outputs[0]->outputs[j]->inputs.size(); k++) //inputs of those components
+						if(comp->outputs[0]->outputs[j]->inputs[k] == comp->outputs[0]){
+							comp->outputs[0]->outputs[j]->inputs[k] = driver;
+							driver->outputs.push_back(comp->outputs[0]->outputs[j]);
+						}
+				cout << "removed buffer! out = " << comp->name << endl;
+				this->RemoveNet(comp->outputs[0]);
+				delete comp->outputs[0];
+				this->RemoveComponent(comp);
+				delete comp;
+
+				load->outputs.erase(load->outputs.begin()+i);
+				i--;
+			}
+		}
+	}
+}
+
 bool Component::RemoveInput(Net* val)
 {
 	vector<Net*>::iterator net_it;

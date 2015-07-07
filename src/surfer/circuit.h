@@ -192,7 +192,10 @@ class Circuit {
 		Component* GetComponentByName(string name);
 		Lut* GetLutByName(string name);
 		Net* GetNetByName(string name);
-//		void
+		bool RemoveNet(Net* n);
+		bool RemoveComponent(Component* val);
+		void ClearBuffers();
+		void bufCleanup(Net* driver, Net* load);
 };
 
 #endif
