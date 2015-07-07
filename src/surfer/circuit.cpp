@@ -570,3 +570,16 @@ bool Component::RemoveInput(Net* val)
 	}
 	return false;
 }
+
+bool Component::RemoveOutput(Net* val)
+{
+	vector<Net*>::iterator net_it;
+	for(net_it = this->outputs.begin(); net_it < this->outputs.end(); net_it++) {
+		Net *n = *net_it;
+		if( val == n ) {
+			this->outputs.erase(net_it);
+			return true;
+		}
+	}
+	return false;
+}

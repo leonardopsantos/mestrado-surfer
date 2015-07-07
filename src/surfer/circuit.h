@@ -67,6 +67,8 @@ class Component {
 		void printLOC(string a, ofstream& file);
 
 		bool RemoveInput(Net *val);
+		bool RemoveOutput(Net *val);
+
 		~Component();
 
 		list<std::pair<Net*, int> > logicConePOs; //POs driven by this, paired with logic depth
