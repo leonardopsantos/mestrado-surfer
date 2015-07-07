@@ -65,6 +65,8 @@ class Component {
 		int locY; //The Y position of the slice this LUT is in
 		virtual void print(FILE* outfile); //prints the VHDL instantiation of this component
 		void printLOC(string a, ofstream& file);
+
+		bool RemoveInput(Net *val);
 		~Component();
 
 		list<std::pair<Net*, int> > logicConePOs; //POs driven by this, paired with logic depth

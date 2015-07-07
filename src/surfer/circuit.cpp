@@ -557,3 +557,16 @@ Net* Circuit::GetNetByName(string name)
 	}
 	return NULL;
 }
+
+bool Component::RemoveInput(Net* val)
+{
+	vector<Net*>::iterator net_it;
+	for(net_it = this->inputs.begin(); net_it < this->inputs.end(); net_it++) {
+		Net *n = *net_it;
+		if( val == n ) {
+			this->inputs.erase(net_it);
+			return true;
+		}
+	}
+	return false;
+}
