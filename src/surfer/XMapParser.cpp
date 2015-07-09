@@ -335,10 +335,10 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					netTarg = symbolTable[name];
 					newBuf->outputs.push_back(netTarg);
 					netTarg->setInput(newBuf);
-					if(netTarg->isPO){
+//					if(netTarg->isPO){
 						circ.components.push_back(newBuf);
 						nextComp++;
-					}
+//					}
 
 					inFile.getline(buf, BUF_SIZE); //skips ");"
 					break;
@@ -364,18 +364,25 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					inFile.getline(buf, BUF_SIZE); //skips "port map("
 					inFile.getline(buf, BUF_SIZE); //I0 (CI) line
 					getNetName(buf + 12, name);
-					netSrc = symbolTable[name];
-					newMux->inputs.push_back(netSrc);
-					netSrc->outputs.push_back(newMux);
+
+					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') ) { // '1',
+						netSrc = symbolTable[name];
+						newMux->inputs.push_back(netSrc);
+						netSrc->outputs.push_back(newMux);
+					}
 
 					inFile.getline(buf, BUF_SIZE); //I1 (DI) line
 					getNetName(buf + 12, name);
-					netSrc = symbolTable[name];
-					newMux->inputs.push_back(netSrc);
-					netSrc->outputs.push_back(newMux);
+
+					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') ) { // '1',
+						netSrc = symbolTable[name];
+						newMux->inputs.push_back(netSrc);
+						netSrc->outputs.push_back(newMux);
+					}
 
 					inFile.getline(buf, BUF_SIZE); //O line
 					getNetName(buf + 11, name);
+
 					netTarg = symbolTable[name];
 					newMux->outputs.push_back(netTarg);
 					netTarg->setInput(newMux);
@@ -841,8 +848,8 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 
 	// Now we should have all components from the 3 circuits. Check everything is OK.
 
-	circ_cpy0.ClearBuffers();
-	circ_cpy1.ClearBuffers();
+//	circ_cpy0.ClearBuffers();
+//	circ_cpy1.ClearBuffers();
 
 	ofstream ucf_out;
 	ucf_out.open ("loc.ucf");
@@ -851,13 +858,30 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 
 	vector<Lut*>::iterator cpy0_lut_it;
 
+	// Sanity check
+	for(cpy0_lut_it = circ_cpy1.luts.begin(); cpy0_lut_it < circ_cpy1.luts.end(); cpy0_lut_it++) {
+		Lut *cpy0_lut = *cpy0_lut_it;
+		Lut *cpy1_lut = circ_cpy0.GetLutByName(cpy0_lut->name);
+
+		if( cpy1_lut == NULL ) {
+			cout << "ERROR: " <<  cpy0_lut->name << " only found on cpy1!\n";
+			return -1;
+		}
+	}
+
 	for(cpy0_lut_it = circ_cpy0.luts.begin(); cpy0_lut_it < circ_cpy0.luts.end(); cpy0_lut_it++) {
 		Lut *cpy0_lut = *cpy0_lut_it;
 		Lut *synth_lut = synth_circ.GetLutByName(cpy0_lut->name);
 		Lut *cpy1_lut = circ_cpy1.GetLutByName(cpy0_lut->name);
 
-		if( synth_lut == NULL || cpy1_lut == NULL )
+		if( cpy1_lut == NULL ) {
+			cout << "ERROR: " <<  cpy0_lut->name << " only found on cpy0!\n";
 			return -1;
+		}
+
+		if( synth_lut == NULL ) {
+			cout << "WARNING: LUT " <<  cpy0_lut->name << " not found on post-synthesis!\n";
+		}
 
 		if ( iscpy0 == true ) {
 			cpy0_lut->printLOC("uut/cpy0/", ucf_out);
@@ -868,12 +892,18 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 		}
 	}
 
+
+#if 0
 	ucf_out << "# Components LOC\n";
 
 	vector<Component*>::iterator cpy0_it;
 
 	for(cpy0_it = circ_cpy0.components.begin(); cpy0_it < circ_cpy0.components.end(); cpy0_it++) {
 		Component *cpy0_lut = *cpy0_it;
+
+		if( cpy0_lut->type == BUF )
+			continue;
+
 		Component *synth_lut = synth_circ.GetComponentByName(cpy0_lut->name);
 		Component *cpy1_lut = circ_cpy1.GetComponentByName(cpy0_lut->name);
 
@@ -888,6 +918,7 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 			cpy1_lut->printLOC("uut/cpy0/", ucf_out);
 		}
 	}
+#endif
 
 	ucf_out.close();
 
@@ -896,4 +927,4 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 
 // /opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64/netgen -intstyle ise -s 2  -pcf alu4.new.pcf -rpw 100 -tpw 0 -ar Structure -tm fault_inj_top -w -dir netgen/map -ofmt vhdl -sim alu4.new.map.ncd alu4.new_timing_map.vhd
 
-
+// /opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64/netgen -intstyle ise -s 2  -pcf pdc.new.pcf -rpw 100 -tpw 0 -ar Structure -tm fault_inj_top -w -dir netgen/map -ofmt vhdl -sim pdc.new.map.ncd pdc.new_timing_map.vhd
