@@ -13,4 +13,5 @@ public:
 
 protected:
 	int maxsize;	//!< Number of Nets to be selected to comparison
+//	vector<std::pair<Net*, double> > selected_nets;
 };
