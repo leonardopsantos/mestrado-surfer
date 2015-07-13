@@ -53,6 +53,12 @@ void XSynthParser::parse(char *filename, Circuit &circ){
 	
 	//skips initial comments until the entity declaration is found
 	inFile.getline(buf, BUF_SIZE);
+
+	if( strlen(buf) > 0 && buf[strlen(buf)-1] == '\r' ) {
+		cout << "Can't deal with Windows End-of-Line (\\r\\n) in " << filename << ". Convert to Unix!!\n";
+		exit(-1);
+	}
+
 	while(buf[0] != 'e')
 		inFile.getline(buf, BUF_SIZE);
 	
