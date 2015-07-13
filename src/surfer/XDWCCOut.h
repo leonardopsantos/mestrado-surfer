@@ -23,7 +23,7 @@
 using namespace std;
 
 class XDWCCOut {
-	private:
+	protected:
 		bool isVector(Net* netptr);
 		void buildSignalVec(vector<Net*> &nets, unsigned *high, unsigned *low, char* buf, vector<bool> &printed, unsigned id);
 		
