@@ -19,13 +19,13 @@ class XMapParser: public XSynthParser {
 		unsigned nextLut;
 		void getNetName(char *src, char *dst);
 		static compType string2type(char *src);
-		int findSequence(ifstream &inFile, string seq, string *text_line);
 		int parsePiPos(ifstream &inFile, Circuit &circ);
 		int parseXY(Component *l, char *loc);
 		int parseArchitecture(ifstream &inFile, Circuit &circ);
 
 	public:
 		int parse(char *synth_filename, Circuit &synth_circ, string &map_filename, Circuit &circ_cpy0, Circuit &circ_cpy1);
+		int findSequence(ifstream &inFile, string seq, string *text_line);
 };
 
 #endif // _INCLUDED_XMAPPARSER_H_
