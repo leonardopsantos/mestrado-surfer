@@ -13,7 +13,7 @@
 #include <map>
 
 #include "circuit.h"
-#include "ftXilinx.h"
+#include "ftSelectiveXilinx.h"
 #include "common.h"
 
 using namespace std;
@@ -21,9 +21,11 @@ using namespace std;
 class XDWSFOut {
 	public:
 		void buildLogicCones(Circuit& circIn);
+		void printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* filename);
 
 	private:
 		void buildNetLogicConePOs(Net* po, Net* net, int depth);
+		void printDWSF(ftSelectiveXilinx &ft, Circuit* circIn);
 };
 
 #endif // _INCLUDED_XDWSFOUT_H_
