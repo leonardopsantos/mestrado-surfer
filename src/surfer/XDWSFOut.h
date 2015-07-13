@@ -15,10 +15,11 @@
 #include "circuit.h"
 #include "ftSelectiveXilinx.h"
 #include "common.h"
+#include "XDWCCOut.h"
 
 using namespace std;
 
-class XDWSFOut {
+class XDWSFOut : public XDWCCOut {
 	public:
 		void buildLogicCones(Circuit& circIn);
 		void printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* filename);
