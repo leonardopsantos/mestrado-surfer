@@ -37,6 +37,7 @@ void XSynthParser::parse(char *filename, Circuit &circ){
 	Net *netTarg, *netSrc;
 	
 	inFile.open(filename);
+	circ.VhdlName = string(filename);
 	
 	circ.components.clear();
 	circ.nets.clear();

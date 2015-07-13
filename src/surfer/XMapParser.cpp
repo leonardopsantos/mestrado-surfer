@@ -731,6 +731,8 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 	circ_cpy1.clear();
 
 	ifstream inFile(map_filename.c_str());
+	circ_cpy0.VhdlName = map_filename;
+	circ_cpy1.VhdlName = map_filename;
 
 	string text_line, entity_name;
 	bool found = false;

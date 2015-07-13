@@ -186,6 +186,7 @@ class Circuit {
 		vector<Net*> POs;
 	
 		string name;
+		string VhdlName;
 
 		void printLutsFanout(void);
 		void clear(void);
