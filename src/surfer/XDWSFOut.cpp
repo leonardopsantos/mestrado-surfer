@@ -411,6 +411,7 @@ void XDWSFOut::printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* f
 	fprintf(outfile, "\n");
 
 	fprintf(outfile, "begin\n"); /****************************************************/
+
 	//instanstiate the two copies
 	for(i=0; i<2; i++){
 		fprintf(outfile, "    cpy%d : %s\n", i, (circ->name+"_dwsf").c_str());
@@ -429,7 +430,7 @@ void XDWSFOut::printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* f
 				fprintf(outfile, "            %s => %s,\n", PIsNames[j].c_str(), PIsNames[j].c_str());
 		}
 		for(j=0; j<POsNames.size(); j++)
-			fprintf(outfile, "            %s => c%d_%s,\n", POsNames[j].c_str(), i, POsNames[j].c_str());
+			fprintf(outfile, "            %s => cpy%d_%s,\n", POsNames[j].c_str(), i, POsNames[j].c_str());
 		fprintf(outfile, "            errorVec => comp_fine_in%d\n", i);
 		fprintf(outfile, "        );\n");
 	}
