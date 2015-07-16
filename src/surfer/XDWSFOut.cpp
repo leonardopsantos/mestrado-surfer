@@ -195,7 +195,7 @@ void XDWSFOut::printDWSF(ftSelectiveXilinx &ft, Circuit* circ)
 
 	outFile << "    errorVec : out STD_LOGIC_VECTOR("<< ft.maxsize-1 << " downto 0)\n";
 	outFile << "  );\n";
-	outFile << "end " << circ->name << "_dwsf is\n";
+	outFile << "end " << circ->name << "_dwsf;\n";
 
 	getline(inFile,text_line); // ");"
 	getline(inFile,text_line); // end entity
