@@ -81,6 +81,9 @@ compType XMapParser::string2type(char *src)
 	if(strstr(src, "X_TOC"))
 		return X_TOC;
 
+	if(strstr(src, "X_CARRY4"))
+		return X_CARRY4;
+
 	return UNKNOWN;
 }
 
@@ -224,7 +227,10 @@ char s[128], *p;
  */
 int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 {
-	char buf[BUF_SIZE], name[BUF_SIZE], bitName[BUF_SIZE], direction[4], type[128], to_downto[32], lutInit[18];
+	char buf[BUF_SIZE], name[BUF_SIZE], bitName[BUF_SIZE];
+	char direction[4], type[128], to_downto[32], lutInit[18];
+	char *ptr;
+
 	Net* newNet;
 	Lut* newLut;
 	Short* newShort;
@@ -232,6 +238,7 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 	Buf* newBuf;
 	Xor* newXor;
 	FlipFlop* newFF;
+	Carry *newCarry;
 	unsigned int upper, lower, locX, locY;
 	int i, j;
 	bool end=false;
@@ -247,11 +254,7 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 			break;
 
 		if( text_line.find("signal") != std::string::npos ) {
-			newNet = XSynthParser::SignalFactory(text_line, circ.nets.size());
-			if( newNet != NULL ) {
-				circ.nets.push_back(newNet);
-				symbolTable[newNet->name] = newNet;
-			}
+			this->ParseSignal(text_line, circ.nets.size(), circ);
 		}
 	}
 
@@ -281,7 +284,6 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					inFile.getline(buf, BUF_SIZE); // LOC => "SLICE_X54Y146",
 
 					sscanf(buf, "      LOC => \"%s\"\n", bitName);
-					char *ptr;
 					ptr = strchr(bitName, '\"');
 					if( ptr != NULL )
 						*ptr = '\0';
@@ -365,7 +367,8 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					inFile.getline(buf, BUF_SIZE); //I0 (CI) line
 					getNetName(buf + 12, name);
 
-					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') ) { // '1',
+					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') &&
+						!(name[0] == '\'' && name[1] == '0' && name[2] == '\'') ) { // '1','0'
 						netSrc = symbolTable[name];
 						newMux->inputs.push_back(netSrc);
 						netSrc->outputs.push_back(newMux);
@@ -374,7 +377,8 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					inFile.getline(buf, BUF_SIZE); //I1 (DI) line
 					getNetName(buf + 12, name);
 
-					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') ) { // '1',
+					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') &&
+						!(name[0] == '\'' && name[1] == '0' && name[2] == '\'') ) { // '1','0'
 						netSrc = symbolTable[name];
 						newMux->inputs.push_back(netSrc);
 						netSrc->outputs.push_back(newMux);
@@ -679,6 +683,82 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					inFile.getline(buf, BUF_SIZE); //skips "port map"
 					break;
 
+				case X_CARRY4: // Do nothing
+					newCarry = new Carry(name, nextComp++);
+
+					inFile.getline(buf, BUF_SIZE); //skips "generic map("
+
+					inFile.getline(buf, BUF_SIZE); // LOC => "SLICE_X54Y146",
+
+					sscanf(buf, "      LOC => \"%s\"\n", bitName);
+					ptr = strchr(bitName, '\"');
+					if( ptr != NULL )
+						*ptr = '\0';
+					parseXY(newCarry, bitName);
+
+					inFile.getline(buf, BUF_SIZE); //skips ")"
+					inFile.getline(buf, BUF_SIZE); //skips "port map("
+
+					inFile.getline(buf, BUF_SIZE); // CI => '0',
+					getNetName(buf + 12, name);
+					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') &&
+						!(name[0] == '\'' && name[1] == '0' && name[2] == '\'') ) { // '1', '0'
+						netSrc = symbolTable[name];
+						newCarry->inputs.push_back(netSrc);
+						netSrc->outputs.push_back(newCarry);
+					}
+
+					inFile.getline(buf, BUF_SIZE); // CYINIT => comp_op2,
+					getNetName(buf + 16, name);
+					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') &&
+						!(name[0] == '\'' && name[1] == '0' && name[2] == '\'') ) { // '1', '0'
+						netSrc = symbolTable[name];
+						newCarry->inputs.push_back(netSrc);
+						netSrc->outputs.push_back(newCarry);
+					}
+
+					for(i = 0; i < 4; i++) {
+						inFile.getline(buf, BUF_SIZE); // CO(3) => Madd_res_add_Madd_cy_3_Q_2348,
+						getNetName(buf + 15, name);
+						netTarg = symbolTable[name];
+						newCarry->outputs.push_back(netTarg);
+						netTarg->setInput(newCarry);
+					}
+
+					for(i = 0; i < 4; i++) {
+						inFile.getline(buf, BUF_SIZE); // DI(3) => op1(3),
+						getNetName(buf + 15, name);
+						if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') &&
+							!(name[0] == '\'' && name[1] == '0' && name[2] == '\'') ) { // '1', '0'
+							netSrc = symbolTable[name];
+							newCarry->inputs.push_back(netSrc);
+							netSrc->outputs.push_back(newCarry);
+						}
+					}
+
+					for(i = 0; i < 4; i++) {
+						inFile.getline(buf, BUF_SIZE); // O(3) => res_add(3),
+						getNetName(buf + 14, name);
+						netTarg = symbolTable[name];
+						newCarry->outputs.push_back(netTarg);
+						netTarg->setInput(newCarry);
+					}
+
+					for(i = 0; i < 4; i++) {
+						inFile.getline(buf, BUF_SIZE); // S(3) => Madd_res_add_Madd_lut(3),
+						getNetName(buf + 14, name);
+						if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') &&
+							!(name[0] == '\'' && name[1] == '0' && name[2] == '\'') ) { // '1', '0'
+							netSrc = symbolTable[name];
+							newCarry->inputs.push_back(netSrc);
+							netSrc->outputs.push_back(newCarry);
+						}
+					}
+
+					circ.components.push_back(newCarry);
+					inFile.getline(buf, BUF_SIZE); //skips ");"
+					break;
+
 				default:
 					end = true;
 					break;
@@ -686,35 +766,6 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 			if(end) //if an unknown component was found, then it's the end (usually an X_)
 				break;
 		}
-#if 0
-			else {
-				if(!strstr(buf, "=")){
-					cout << "Parsing error at line: " << buf << endl;
-					exit(0);
-				}
-#if 0
-				//short circuit
-				newShort = new Short(nextComp++);
-
-				getNetName(buf+2, name);
-				netTarg = symbolTable[name];
-				newShort->outputs.push_back(netTarg);
-
-				getNetName(strchr(buf, '=')+2, name);
-				netSrc = symbolTable[name];
-				newShort->inputs.push_back(netSrc);
-
-				netTarg->setInput(newShort);
-
-				netSrc->outputs.push_back(newShort);
-
-				//if(netTarg->isPO){
-					circ.components.push_back(newShort);
-				//	nextComp++;
-				//}
-#endif
-			}
-#endif
 	}
 	return 0;
 }
@@ -737,7 +788,7 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 	string text_line, entity_name;
 	bool found = false;
 
-	if( findSequence(inFile, synth_circ.name, &text_line) == 0 )
+	if( findSequence(inFile, "entity "+synth_circ.name, &text_line) == 0 )
 		return -1;
 
 	// not the same as synth_circ.name ( _INST_1 )
@@ -795,7 +846,7 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 	if( i != 0 ) return -1;
 
 	// Now look for cpy1
-	if( findSequence(inFile, synth_circ.name, &text_line) == 0 )
+	if( findSequence(inFile, "entity "+synth_circ.name, &text_line) == 0 )
 		return -1;
 
 	// not the same as synth_circ.name ( _INST_1 )
@@ -808,7 +859,6 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 			break;
 		}
 	}
-
 
 	inFilePosition = inFile.tellg();
 
@@ -862,12 +912,12 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 
 	// Sanity check
 	for(cpy0_lut_it = circ_cpy1.luts.begin(); cpy0_lut_it < circ_cpy1.luts.end(); cpy0_lut_it++) {
-		Lut *cpy0_lut = *cpy0_lut_it;
-		Lut *cpy1_lut = circ_cpy0.GetLutByName(cpy0_lut->name);
+		Lut *cpy1_lut = *cpy0_lut_it;
+		Lut *cpy0_lut = circ_cpy0.GetLutByName(cpy1_lut->name);
 
-		if( cpy1_lut == NULL ) {
-			cout << "ERROR: " <<  cpy0_lut->name << " only found on cpy1!\n";
-			return -1;
+		if( cpy0_lut == NULL ) {
+			cout << "ERROR: " <<  cpy1_lut->name << " only found on cpy1!\n";
+			continue;
 		}
 	}
 
@@ -875,52 +925,18 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 		Lut *cpy0_lut = *cpy0_lut_it;
 		Lut *synth_lut = synth_circ.GetLutByName(cpy0_lut->name);
 		Lut *cpy1_lut = circ_cpy1.GetLutByName(cpy0_lut->name);
-
 		if( cpy1_lut == NULL ) {
 			cout << "ERROR: " <<  cpy0_lut->name << " only found on cpy0!\n";
-			return -1;
+			continue;
 		}
 
 		if( synth_lut == NULL ) {
 			cout << "WARNING: LUT " <<  cpy0_lut->name << " not found on post-synthesis!\n";
 		}
 
-		if ( iscpy0 == true ) {
-			cpy0_lut->printLOC("uut/cpy0/", ucf_out);
-			cpy1_lut->printLOC("uut/cpy1/", ucf_out);
-		} else {
-			cpy0_lut->printLOC("uut/cpy1/", ucf_out);
-			cpy1_lut->printLOC("uut/cpy0/", ucf_out);
-		}
+		cpy0_lut->printLOC("cut/cpy0/", ucf_out);
+		cpy1_lut->printLOC("cut/cpy1/", ucf_out);
 	}
-
-
-#if 0
-	ucf_out << "# Components LOC\n";
-
-	vector<Component*>::iterator cpy0_it;
-
-	for(cpy0_it = circ_cpy0.components.begin(); cpy0_it < circ_cpy0.components.end(); cpy0_it++) {
-		Component *cpy0_lut = *cpy0_it;
-
-		if( cpy0_lut->type == BUF )
-			continue;
-
-		Component *synth_lut = synth_circ.GetComponentByName(cpy0_lut->name);
-		Component *cpy1_lut = circ_cpy1.GetComponentByName(cpy0_lut->name);
-
-		if( synth_lut == NULL || cpy1_lut == NULL )
-			return -1;
-
-		if ( iscpy0 == true ) {
-			cpy0_lut->printLOC("uut/cpy0/", ucf_out);
-			cpy1_lut->printLOC("uut/cpy1/", ucf_out);
-		} else {
-			cpy0_lut->printLOC("uut/cpy1/", ucf_out);
-			cpy1_lut->printLOC("uut/cpy0/", ucf_out);
-		}
-	}
-#endif
 
 	ucf_out.close();
 
@@ -930,3 +946,5 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 // /opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64/netgen -intstyle ise -s 2  -pcf alu4.new.pcf -rpw 100 -tpw 0 -ar Structure -tm fault_inj_top -w -dir netgen/map -ofmt vhdl -sim alu4.new.map.ncd alu4.new_timing_map.vhd
 
 // /opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64/netgen -intstyle ise -s 2  -pcf pdc.new.pcf -rpw 100 -tpw 0 -ar Structure -tm fault_inj_top -w -dir netgen/map -ofmt vhdl -sim pdc.new.map.ncd pdc.new_timing_map.vhd
+
+// /opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64/netgen -intstyle ise -s 2  -pcf alu_cell.pcf -rpw 100 -tpw 0 -ar Structure -tm fault_inj_top -insert_pp_buffers true -w -dir netgen/par -ofmt vhdl -sim alu_cell.ncd alu_cell_timesim.vhd

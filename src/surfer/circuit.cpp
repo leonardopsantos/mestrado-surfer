@@ -417,6 +417,15 @@ void FlipFlop::print(FILE* outfile){
 
 }
 
+Carry::Carry(string newName, unsigned compId)
+{
+	name.assign(newName);
+	id = compId;
+	type = X_CARRY4;
+}
+
+void Carry::print(FILE* outfile) {}
+
 void Circuit::printLutsFanout(void) {
 
 
@@ -574,7 +583,7 @@ void Circuit::ClearBuffers()
 			else
 				this->nets.erase(this->nets.begin() + i);
 		} else {
-			if( n->input->type != BUF )
+			if( n->input != NULL && n->input->type != BUF )
 				continue;
 
 			Component *buf = n->input;
@@ -615,6 +624,19 @@ bool Circuit::RemoveComponent(Component* val)
 		Component *comp = *comp_it;
 		if( val == comp ) {
 			this->components.erase(comp_it);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Circuit::RemoveLut(Lut* val)
+{
+	vector<Lut*>::iterator lut_it;
+	for(lut_it = this->luts.begin(); lut_it < this->luts.end(); lut_it++) {
+		Lut *l = *lut_it;
+		if( val == l ) {
+			this->luts.erase(lut_it);
 			return true;
 		}
 	}

@@ -38,7 +38,8 @@ using namespace std;
 //ZERO: component that sets a signal to GND permanently
 //ONE: component that sets a signal to VCC permanently
 enum compType { LUT, LUT6, LUT5, MUXF7, MUXF8, MUXCY, XORCY, MUX, BUF, INV, FDR, 
-		FDRE, FDRS, FDRSE, ADDER, DSP48E, SHORT, ZERO, ONE, X_ROC, X_TOC, UNKNOWN };
+		FDRE, FDRS, FDRSE, ADDER, DSP48E, SHORT, ZERO, ONE, X_ROC, X_TOC, X_CARRY4,
+		UNKNOWN };
 
 //possible signal values:
 //GND: signal has constant value zero
@@ -133,6 +134,12 @@ class Short: public Component {
 		void print(FILE* outfile); //prints a VHDL "short circuit" (a signal assignment)
 };
 
+class Carry: public Component {
+	public:
+		Carry(string newName, unsigned compId); //class constructor
+		void print(FILE* outfile); //prints the VHDL instanciation of a X_CARRY4
+};
+
 class Net {
 	public:
 		unsigned id; //Net's id
@@ -157,14 +164,6 @@ class Net {
 		struct fanoutCompare {
 		      bool operator()(const Net* l, const Net* r) { return l->outputs.size() >= r->outputs.size();}
 		    };
-//		bool operator<(const Net &rhs) const {
-//			if( outputs.size() == 0 )
-//				return false;
-//			if( rhs.outputs.size() == 0 )
-//				return true;
-//			return outputs.size() < rhs.outputs.size();
-//		}
-//		bool operator<(const Net &rhs) const { return outputs.size() < rhs.outputs.size(); }
 };
 
 class Circuit {
@@ -195,6 +194,7 @@ class Circuit {
 		Net* GetNetByName(string name);
 		bool RemoveNet(Net* n);
 		bool RemoveComponent(Component* val);
+		bool RemoveLut(Lut* val);
 		void ClearBuffers();
 		void bufCleanup(Net* driver, Net* load);
 };
