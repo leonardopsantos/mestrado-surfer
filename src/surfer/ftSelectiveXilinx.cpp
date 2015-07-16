@@ -43,106 +43,161 @@ int ftSelectiveXilinx::buildFtSelectiveCirc(Circuit& synth_circ,
 	}
 
 	vector<Component*>::iterator comp_it;
-	Component *comp;
+	Component *cpy0_comp, *cpy1_comp;
 
 	vector<Net*>::iterator net_it;
 	for(net_it = circ_cpy0.nets.begin(); net_it < circ_cpy0.nets.end(); net_it++) {
-		Net *n = *net_it;
+		Net *cpy0_net = *net_it;
 
-		if( n->isPO == true || n->isPI == true || n->input->type == BUF )
+		if( cpy0_net->input == NULL )
 			continue;
+
+		if( cpy0_net->isPO == true || cpy0_net->isPI == true || cpy0_net->input->type == BUF )
+			continue;
+
+//		cout << cpy0_net->name <<" : ";
 
 		mean = 0;
-		for(comp_it = n->outputs.begin(); comp_it < n->outputs.end(); comp_it++) {
+		for(comp_it = cpy0_net->outputs.begin(); comp_it < cpy0_net->outputs.end(); comp_it++) {
 
-			Component *synth_lut, *cpy1_lut;
-			comp = *comp_it;
+			cpy0_comp = *comp_it;
 
-			if( comp->type == BUF )
+			if( cpy0_comp->type == BUF )
 				break;
 
-			synth_lut = synth_circ.GetLutByName(comp->name);
-			if( synth_lut == NULL )
-				synth_lut = synth_circ.GetComponentByName(comp->name);
+			cpy1_comp = circ_cpy1.GetLutByName(cpy0_comp->name);
+			if( cpy1_comp == NULL )
+				cpy1_comp = circ_cpy1.GetComponentByName(cpy0_comp->name);
+			if( cpy1_comp == NULL )
+				break;
 
-			cpy1_lut = circ_cpy1.GetLutByName(comp->name);
-			if( cpy1_lut == NULL )
-				cpy1_lut = circ_cpy1.GetComponentByName(comp->name);
+			if( cpy0_comp->locX < 0 )
+				cout << cpy0_comp->name << "   WHAAAAAAAATTTT ???\n";
 
-			if( synth_lut == NULL || cpy1_lut == NULL )
-				return -1;
+			if( cpy1_comp->locX < 0 )
+				cout << cpy1_comp->name << "   WHAAAAAAAATTTT ???\n";
 
-			if( comp->locX < 0 )
-				cout << comp->name << "   WHAAAAAAAATTTT ???\n";
+			mean += cpy0_comp->locX;
+//			cout << cpy0_comp->locX <<",";
 
-			mean += comp->locX;
-//			cout << comp->locX <<",";
+			mean += cpy1_comp->locX;
+//			cout << cpy1_comp->locX <<",";
 
-			if( minLoc.first > comp->locX ) {
-				minLoc.first = comp->locX;
+			if( minLoc.first > cpy0_comp->locX ) {
+				minLoc.first = cpy0_comp->locX;
 			}
-			if( minLoc.second > comp->locY ) {
-				minLoc.second = comp->locY;
+			if( minLoc.second > cpy0_comp->locY ) {
+				minLoc.second = cpy0_comp->locY;
 			}
-			if( maxLoc.first < comp->locX ) {
-				maxLoc.first = comp->locX;
-				maxLoc.second = comp->locY;
+			if( maxLoc.first < cpy0_comp->locX ) {
+				maxLoc.first = cpy0_comp->locX;
 			}
-			if( maxLoc.second < comp->locY ) {
-				maxLoc.second = comp->locY;
+			if( maxLoc.second < cpy0_comp->locY ) {
+				maxLoc.second = cpy0_comp->locY;
+			}
+
+			if( minLoc.first > cpy1_comp->locX ) {
+				minLoc.first = cpy1_comp->locX;
+			}
+			if( minLoc.second > cpy1_comp->locY ) {
+				minLoc.second = cpy1_comp->locY;
+			}
+			if( maxLoc.first < cpy1_comp->locX ) {
+				maxLoc.first = cpy1_comp->locX;
+			}
+			if( maxLoc.second < cpy1_comp->locY ) {
+				maxLoc.second = cpy1_comp->locY;
 			}
 		}
 
-		if( comp->type == BUF )
+		if( cpy0_comp->type == BUF || cpy1_comp == NULL )
 			continue;
 
-		if( n->input->locX < 0 )
-			cout << n->input->name << "   WHAAAAAAAATTTT ???\n";
+		if( cpy0_net->input->locX < 0 )
+			cout << cpy0_net->input->name << "   WHAAAAAAAATTTT ???\n";
 
-		mean += n->input->locX;
-//		cout << n->input->locX <<" : ";
+		cpy1_comp = circ_cpy1.GetLutByName(cpy0_net->input->name);
+		if( cpy1_comp == NULL )
+			cpy1_comp = circ_cpy1.GetComponentByName(cpy0_net->input->name);
+		if( cpy1_comp == NULL )
+			continue;
 
-		if( minLoc.first > n->input->locX ) {
-			minLoc.first = n->input->locX;
-			minLoc.second = n->input->locY;
+		if( cpy1_comp->locX < 0 )
+			cout << cpy1_comp->name << "   WHAAAAAAAATTTT ???\n";
+
+		mean += cpy0_net->input->locX;
+//		cout << cpy0_net->input->locX <<",";
+
+		mean += cpy1_comp->locX;
+//		cout << cpy1_comp->locX <<" : ";
+
+		if( minLoc.first > cpy0_net->input->locX ) {
+			minLoc.first = cpy0_net->input->locX;
+			minLoc.second = cpy0_net->input->locY;
 		}
-		if( minLoc.second > n->input->locY ) {
-			minLoc.second = n->input->locY;
+		if( minLoc.second > cpy0_net->input->locY ) {
+			minLoc.second = cpy0_net->input->locY;
 		}
-		if( maxLoc.first < n->input->locX ) {
-			maxLoc.first = n->input->locX;
-			maxLoc.second = n->input->locY;
+		if( maxLoc.first < cpy0_net->input->locX ) {
+			maxLoc.first = cpy0_net->input->locX;
+			maxLoc.second = cpy0_net->input->locY;
 		}
-		if( maxLoc.second < n->input->locY ) {
-			maxLoc.second = n->input->locY;
+		if( maxLoc.second < cpy0_net->input->locY ) {
+			maxLoc.second = cpy0_net->input->locY;
 		}
 
-		mean /= n->outputs.size()+1; // don't forget the input
+		if( minLoc.first > cpy1_comp->locX ) {
+			minLoc.first = cpy1_comp->locX;
+		}
+		if( minLoc.second > cpy1_comp->locY ) {
+			minLoc.second = cpy1_comp->locY;
+		}
+		if( maxLoc.first < cpy1_comp->locX ) {
+			maxLoc.first = cpy1_comp->locX;
+			maxLoc.second = cpy1_comp->locY;
+		}
+		if( maxLoc.second < cpy1_comp->locY ) {
+			maxLoc.second = cpy1_comp->locY;
+		}
+
+		mean /= 2*(cpy0_net->outputs.size()+1); // don't forget the input
 
 		sigma = 0;
 
-		for(comp_it = n->outputs.begin(); comp_it < n->outputs.end(); comp_it++) {
-			comp = *comp_it;
+		for(comp_it = cpy0_net->outputs.begin(); comp_it < cpy0_net->outputs.end(); comp_it++) {
+			cpy0_comp = *comp_it;
 
-			sigma += (mean - comp->locX)*(mean - comp->locX);
+			sigma += (mean - cpy0_comp->locX)*(mean - cpy0_comp->locX);
+
+			cpy1_comp = circ_cpy1.GetLutByName(cpy0_comp->name);
+			if( cpy1_comp == NULL )
+				cpy1_comp = circ_cpy1.GetComponentByName(cpy0_comp->name);
+
+			sigma += (mean - cpy1_comp->locX)*(mean - cpy1_comp->locX);
 		}
 
-		sigma += (mean - comp->locX)*(mean - comp->locX);
+		sigma += (mean - cpy0_net->input->locX)*(mean - cpy0_net->input->locX);
 
 		if( sigma == 0 )
 			continue;
 
-		sigma /= n->outputs.size()+1; // don't forget the input
+		cpy1_comp = circ_cpy1.GetLutByName(cpy0_net->input->name);
+		if( cpy1_comp == NULL )
+			cpy1_comp = circ_cpy1.GetComponentByName(cpy0_net->input->name);
+
+		sigma += (mean - cpy1_comp->locX)*(mean - cpy1_comp->locX);
+
+		sigma /= 2*(cpy0_net->outputs.size()+1); // don't forget the input
 
 		sigma = sqrt(sigma);
 
-//		cout << "mean = " << mean << ", sigma = " << sigma << " , sigma/n = "<< (sigma/(n->outputs.size()+1)) << "\n";
+//		cout << "mean = " << mean << ", sigma = " << sigma << " , sigma/n = "<< (sigma/(2*(cpy0_net->outputs.size()+1))) << "\n";
 
-		sigma = (sigma/(n->outputs.size()+1));
+		sigma = (sigma/(2*(cpy0_net->outputs.size()+1)));
 
 		for(sel_it = interesting_nets.begin(); sel_it < interesting_nets.end(); sel_it++) {
 			if( sel_it->second > sigma ) {
-				sel_it->first = n;
+				sel_it->first = cpy0_net;
 				sel_it->second = sigma;
 				break;
 			}
@@ -156,8 +211,8 @@ int ftSelectiveXilinx::buildFtSelectiveCirc(Circuit& synth_circ,
 //	for(sel_it = interesting_nets.begin(); sel_it < interesting_nets.end(); sel_it++) {
 //		cout << "    " << sel_it->first->name << " sigma : " << sel_it->second << " : ";
 //		for(comp_it = sel_it->first->outputs.begin(); comp_it < sel_it->first->outputs.end(); comp_it++) {
-//			comp = *comp_it;
-//			cout << comp->locX <<",";
+//			cpy0_comp = *comp_it;
+//			cout << cpy0_comp->locX <<",";
 //		}
 //		cout << sel_it->first->input->locX <<"\n";
 //	}
@@ -168,109 +223,6 @@ int ftSelectiveXilinx::buildFtSelectiveCirc(Circuit& synth_circ,
 //		sel_it->second = 999999;
 //	}
 
-	for(net_it = circ_cpy1.nets.begin(); net_it < circ_cpy1.nets.end(); net_it++) {
-		Net *n = *net_it;
-
-		if( n->isPO == true || n->isPI == true || n->input->type == BUF )
-			continue;
-
-		mean = 0;
-		for(comp_it = n->outputs.begin(); comp_it < n->outputs.end(); comp_it++) {
-
-			Component *synth_lut, *cpy1_lut;
-			comp = *comp_it;
-
-			if( comp->type == BUF )
-				break;
-
-			synth_lut = synth_circ.GetLutByName(comp->name);
-			if( synth_lut == NULL )
-				synth_lut = synth_circ.GetComponentByName(comp->name);
-
-			cpy1_lut = circ_cpy1.GetLutByName(comp->name);
-			if( cpy1_lut == NULL )
-				cpy1_lut = circ_cpy1.GetComponentByName(comp->name);
-
-			if( synth_lut == NULL || cpy1_lut == NULL )
-				return -1;
-
-			if( comp->locX < 0 )
-				cout << comp->name << "   WHAAAAAAAATTTT ???\n";
-
-			mean += comp->locX;
-//			cout << comp->locX <<",";
-
-			if( minLoc.first > comp->locX ) {
-				minLoc.first = comp->locX;
-			}
-			if( minLoc.second > comp->locY ) {
-				minLoc.second = comp->locY;
-			}
-			if( maxLoc.first < comp->locX ) {
-				maxLoc.first = comp->locX;
-				maxLoc.second = comp->locY;
-			}
-			if( maxLoc.second < comp->locY ) {
-				maxLoc.second = comp->locY;
-			}
-		}
-
-		if( comp->type == BUF )
-			continue;
-
-		if( n->input->locX < 0 )
-			cout << n->input->name << "   WHAAAAAAAATTTT ???\n";
-
-		mean += n->input->locX;
-//		cout << n->input->locX <<" : ";
-
-		if( minLoc.first > n->input->locX ) {
-			minLoc.first = n->input->locX;
-			minLoc.second = n->input->locY;
-		}
-		if( minLoc.second > n->input->locY ) {
-			minLoc.second = n->input->locY;
-		}
-		if( maxLoc.first < n->input->locX ) {
-			maxLoc.first = n->input->locX;
-			maxLoc.second = n->input->locY;
-		}
-		if( maxLoc.second < n->input->locY ) {
-			maxLoc.second = n->input->locY;
-		}
-
-		mean /= n->outputs.size()+1; // don't forget the input
-
-		sigma = 0;
-
-		for(comp_it = n->outputs.begin(); comp_it < n->outputs.end(); comp_it++) {
-			comp = *comp_it;
-
-			sigma += (mean - comp->locX)*(mean - comp->locX);
-		}
-
-		sigma += (mean - comp->locX)*(mean - comp->locX);
-
-		if( sigma == 0 )
-			continue;
-
-		sigma /= n->outputs.size()+1; // don't forget the input
-
-		sigma = sqrt(sigma);
-
-//		cout << "mean = " << mean << ", sigma = " << sigma << " , sigma/n = "<< (sigma/(n->outputs.size()+1)) << "\n";
-
-		sigma = (sigma/(n->outputs.size()+1));
-
-		for(sel_it = interesting_nets.begin(); sel_it < interesting_nets.end(); sel_it++) {
-			if( sel_it->second > sigma ) {
-				sel_it->first = n;
-				sel_it->second = sigma;
-				break;
-			}
-		}
-	}
-
 	for(i=0; i < interesting_nets.size(); i++) {
 		this->selected_nets[i] = interesting_nets[i].first;
 	}
@@ -279,13 +231,25 @@ int ftSelectiveXilinx::buildFtSelectiveCirc(Circuit& synth_circ,
 			<< maxLoc.first << "," << maxLoc.second << ")\n";
 
 	cout << "Selected Nets:\n";
+	char letter = 'A';
 	for(sel_it = interesting_nets.begin(); sel_it < interesting_nets.end(); sel_it++) {
-		cout << "    " << sel_it->first->name << " sigma : " << sel_it->second << " : ";
+		cout << "    (" << letter++ << ") " << sel_it->first->name << " - sigma = " << sel_it->second << " : ";
 		for(comp_it = sel_it->first->outputs.begin(); comp_it < sel_it->first->outputs.end(); comp_it++) {
-			comp = *comp_it;
-			cout << comp->locX <<",";
+			cpy0_comp = *comp_it;
+
+			cout << cpy0_comp->locX <<",";
+
+			cpy1_comp = circ_cpy1.GetLutByName(cpy0_comp->name);
+			if( cpy1_comp == NULL )
+				cpy1_comp = circ_cpy1.GetComponentByName(cpy0_comp->name);
+			cout << cpy1_comp->locX <<",";
 		}
-		cout << sel_it->first->input->locX <<"\n";
+		cout << sel_it->first->input->locX <<",";
+
+		cpy1_comp = circ_cpy1.GetLutByName(sel_it->first->input->name);
+		if( cpy1_comp == NULL )
+			cpy1_comp = circ_cpy1.GetComponentByName(sel_it->first->input->name);
+		cout << cpy1_comp->locX <<"\n";
 	}
 	cout << "\n";
 
@@ -304,19 +268,22 @@ int ftSelectiveXilinx::buildFtSelectiveCirc(Circuit& synth_circ,
 	for(net_it = circ_cpy0.nets.begin(); net_it < circ_cpy0.nets.end(); net_it++) {
 		Net *n = *net_it;
 
-		if( n->isPO == true || n->isPI == true || n->input->type == BUF )
+		if( n->input == NULL )
+			continue;
+
+		if( n->isPO == true || n->isPI == true ||n->input->type == BUF )
 			continue;
 
 		for(comp_it = n->outputs.begin(); comp_it < n->outputs.end(); comp_it++) {
 
-			comp = *comp_it;
+			cpy0_comp = *comp_it;
 
-			if( comp->type == BUF )
+			if( cpy0_comp->type == BUF )
 				break;
 
-			dist[comp->locX-minLoc.first][comp->locY-minLoc.second] = '0';
+			dist[cpy0_comp->locX-minLoc.first][cpy0_comp->locY-minLoc.second] = '0';
 		}
-		if( comp->type == BUF )
+		if( cpy0_comp->type == BUF )
 			continue;
 
 		dist[n->input->locX-minLoc.first][n->input->locY-minLoc.second] = '0';
@@ -325,30 +292,40 @@ int ftSelectiveXilinx::buildFtSelectiveCirc(Circuit& synth_circ,
 	for(net_it = circ_cpy1.nets.begin(); net_it < circ_cpy1.nets.end(); net_it++) {
 		Net *n = *net_it;
 
+		if( n->input == NULL )
+			continue;
+
 		if( n->isPO == true || n->isPI == true || n->input->type == BUF )
 			continue;
 
 		for(comp_it = n->outputs.begin(); comp_it < n->outputs.end(); comp_it++) {
 
-			comp = *comp_it;
+			cpy0_comp = *comp_it;
 
-			if( comp->type == BUF )
+			if( cpy0_comp->type == BUF )
 				break;
 
-			dist[comp->locX-minLoc.first][comp->locY-minLoc.second] = '1';
+			dist[cpy0_comp->locX-minLoc.first][cpy0_comp->locY-minLoc.second] = '1';
 		}
-		if( comp->type == BUF )
+		if( cpy0_comp->type == BUF )
 			continue;
 
 		dist[n->input->locX-minLoc.first][n->input->locY-minLoc.second] = '1';
 	}
 
+	letter = 'A';
 	for(sel_it = interesting_nets.begin(); sel_it < interesting_nets.end(); sel_it++) {
-		dist[sel_it->first->input->locX-minLoc.first][sel_it->first->input->locY-minLoc.second] = '*';
+		dist[sel_it->first->input->locX-minLoc.first][sel_it->first->input->locY-minLoc.second] = letter;
+
+		cpy1_comp = circ_cpy1.GetLutByName(sel_it->first->input->name);
+		if( cpy1_comp == NULL )
+			cpy1_comp = circ_cpy1.GetComponentByName(sel_it->first->input->name);
+
+		dist[cpy1_comp->locX-minLoc.first][cpy1_comp->locY-minLoc.second] = letter++;
 	}
 
-	for(i = 0; i < maxLoc.first; i++) {
-		for(j = 0; j < maxLoc.second; j++) {
+	for(j = maxLoc.second-1; j >= 0 ; j--) {
+		for(i = 0; i < maxLoc.first; i++) {
 			cout << dist[i][j] << flush;
 		}
 		cout << "\n";
