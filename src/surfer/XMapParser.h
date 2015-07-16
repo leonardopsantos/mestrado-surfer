@@ -13,10 +13,6 @@
 
 class XMapParser: public XSynthParser {
 	protected:
-		map<string, Net*> symbolTable;
-		unsigned nextNet;
-		unsigned nextComp;
-		unsigned nextLut;
 		void getNetName(char *src, char *dst);
 		static compType string2type(char *src);
 		int parsePiPos(ifstream &inFile, Circuit &circ);

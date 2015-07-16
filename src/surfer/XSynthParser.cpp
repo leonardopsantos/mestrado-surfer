@@ -740,7 +740,7 @@ void XSynthParser::bufCleanup(Net* driver, Net* load){
 	}
 }
 
-Net* XSynthParser::SignalFactory(std::string line, int id)
+void XSynthParser::ParseSignal(std::string line, int id, Circuit &circ)
 {
 	Net *newNet;
 
@@ -765,17 +765,17 @@ Net* XSynthParser::SignalFactory(std::string line, int id)
 			else
 				snprintf(bitName, sizeof(name), "%s(%d)", name, i); //generates this bit's name
 			newNet = new Net(bitName, id+1);
-			return newNet;
+			circ.nets.push_back(newNet);
+			this->symbolTable[newNet->name] = newNet;
 		}
 
 	} else { // it's a signal
 		sscanf(line.c_str(), "  signal %s : %s;", name, type);
 		//std_logic signal
 		newNet = new Net(name, id+1);
-		return newNet;
+		circ.nets.push_back(newNet);
+		this->symbolTable[newNet->name] = newNet;
 	}
-
-	return NULL;
 }
 
 Lut* LutFactory(char *name, ifstream &inFile, int id)

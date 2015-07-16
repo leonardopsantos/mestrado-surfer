@@ -28,7 +28,7 @@ class XSynthParser {
 		void bufCleanup(Net* driver, Net* load);
 	public:
 		void parse(char *filename, Circuit &circ);
-		static Net* SignalFactory(std::string line, int id);
+		void ParseSignal(std::string line, int id, Circuit &circ);
 		static Component* ComponentFactory(std::string line, ifstream &inFile, int id);
 };
 
