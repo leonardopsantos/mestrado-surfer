@@ -84,6 +84,12 @@ compType XMapParser::string2type(char *src)
 	if(strstr(src, "X_CARRY4"))
 		return X_CARRY4;
 
+	if(strstr(src, "X_ONE"))
+		return X_ONE;
+
+	if(strstr(src, "X_ZERO"))
+		return X_ZERO;
+
 	return UNKNOWN;
 }
 
@@ -759,6 +765,13 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					inFile.getline(buf, BUF_SIZE); //skips ");"
 					break;
 
+				case X_ONE: // Do nothing
+				case X_ZERO: // Do nothing
+					do {
+						inFile.getline(buf, BUF_SIZE); // DI(3) => op1(3),
+					} while( strstr(buf, "    );") == NULL );
+					break;
+
 				default:
 					end = true;
 					break;
@@ -902,6 +915,9 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 
 //	circ_cpy0.ClearBuffers();
 //	circ_cpy1.ClearBuffers();
+
+	circ_cpy0.ClearNets();
+	circ_cpy1.ClearNets();
 
 	ofstream ucf_out;
 	ucf_out.open ("loc.ucf");

@@ -38,8 +38,8 @@ using namespace std;
 //ZERO: component that sets a signal to GND permanently
 //ONE: component that sets a signal to VCC permanently
 enum compType { LUT, LUT6, LUT5, MUXF7, MUXF8, MUXCY, XORCY, MUX, BUF, INV, FDR, 
-		FDRE, FDRS, FDRSE, ADDER, DSP48E, SHORT, ZERO, ONE, X_ROC, X_TOC, X_CARRY4,
-		UNKNOWN };
+		FDRE, FDRS, FDRSE, ADDER, DSP48E, SHORT, ZERO, ONE, X_ROC, X_TOC,
+		X_CARRY4, X_ONE, X_ZERO, UNKNOWN };
 
 //possible signal values:
 //GND: signal has constant value zero
@@ -196,6 +196,7 @@ class Circuit {
 		bool RemoveComponent(Component* val);
 		bool RemoveLut(Lut* val);
 		void ClearBuffers();
+		bool ClearNets();
 		void bufCleanup(Net* driver, Net* load);
 };
 

@@ -604,6 +604,19 @@ void Circuit::ClearBuffers()
 	}
 }
 
+bool Circuit::ClearNets()
+{
+	vector<Net*>::iterator net_it;
+	for(net_it = this->nets.begin(); net_it < this->nets.end(); net_it++) {
+		Net *n = *net_it;
+		if( n->input == NULL && n->outputs.size() == 0 ) {
+			this->nets.erase(net_it);
+			return true;
+		}
+	}
+	return false;
+}
+
 bool Circuit::RemoveNet(Net* val)
 {
 	vector<Net*>::iterator net_it;
