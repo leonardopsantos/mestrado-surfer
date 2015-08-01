@@ -8,11 +8,11 @@ for i in benches/*
 do
 	for vhd in $i/*_ft_*.vhd
 	do
-		inwidth=$(cat $vhd | grep -m 1 "inputVector : in STD_LOGIC_VECTOR([0-9]* downto 0)" | sed s/'		inputVector : in STD_LOGIC_VECTOR('// | sed s/' downto 0);'//)
-		outwidth=$(cat $vhd | grep -m 1 "outputVector : out STD_LOGIC_VECTOR([0-9]* downto 0)" | sed s/'		outputVector : out STD_LOGIC_VECTOR('// | sed s/' downto 0);'//)
-		errorswidth=$(cat $vhd | grep -m 1 "errorVec : out STD_LOGIC_VECTOR([0-9]* downto 0)" | sed s/'		errorVec : out STD_LOGIC_VECTOR('// | sed s/' downto 0)'//)
-		errorspowidth=$(cat $vhd | grep -m 1 "errorVecPO : out STD_LOGIC_VECTOR([0-9]* downto 0)" | sed s/'		errorVecPO : out STD_LOGIC_VECTOR('// | sed s/' downto 0);'//)
-		echo in = $inwidth
+		inwidth=$(cat $vhd | grep -m 1 "inputVector : in STD_LOGIC_VECTOR([0-9]* downto 0)" | sed -e 's/[\t ]\+inputVector : in STD_LOGIC_VECTOR(//' | sed s/' downto 0);'//)
+		outwidth=$(cat $vhd | grep -m 1 "outputVector : out STD_LOGIC_VECTOR([0-9]* downto 0)" | sed -e 's/[\t ]\+outputVector : out STD_LOGIC_VECTOR('// | sed s/' downto 0);'//)
+		errorswidth=$(cat $vhd | grep -m 1 "errorVec : out STD_LOGIC_VECTOR([0-9]* downto 0)" | sed -e 's/[\t ]\+errorVec : out STD_LOGIC_VECTOR('// | sed s/' downto 0)'//)
+		errorspowidth=$(cat $vhd | grep -m 1 "errorVecPO : out STD_LOGIC_VECTOR([0-9]* downto 0)" | sed -e 's/[\t ]\+errorVecPO : out STD_LOGIC_VECTOR('// | sed s/' downto 0);'//)
+#		echo in = $inwidth
 		inwidth=$(($inwidth + 1))
 		outwidth=`expr $outwidth + 1`
 		errorswidth=`expr $errorswidth + 1`
