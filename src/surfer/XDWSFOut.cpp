@@ -181,7 +181,7 @@ void XDWSFOut::printDWSF(ftSelectiveXilinx &ft, Circuit* circ)
 		getline(inFile,text_line);
 		if (inFile.eof()) break;
 		rtrim(text_line);
-		if(text_line.substr( text_line.length()-2 ) != ");" )
+		if(text_line.substr( text_line.length()-1 ) != ";" )
 			break;
 		else
 			outFile << text_line << "\n";
