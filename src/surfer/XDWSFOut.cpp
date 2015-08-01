@@ -348,15 +348,17 @@ void XDWSFOut::printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* f
 
 	//Signals & Components declaration************************************************************
 	//error aggregation component
-	fprintf(outfile, "    component multiple_input_or is\n");
-	fprintf(outfile, "        Generic (\n");
-	fprintf(outfile, "            GATE_INPUT_SIZE : integer := %d;\n", errorsCnt);
-	fprintf(outfile, "            LOG_GATE_INPUT_SIZE : integer := %d);\n", (int) ceil(log(errorsCnt)/log(2)));
-	fprintf(outfile, "        Port (\n"\
-			         "            input_vec : in  STD_LOGIC_VECTOR(GATE_INPUT_SIZE-1 downto 0);\n");
-	fprintf(outfile, "            output : out  STD_LOGIC)\n"\
-			         "        ;\n");
-	fprintf(outfile, "    end component;\n\n");
+	if(errorsCnt > 1) {
+		fprintf(outfile, "    component multiple_input_or is\n");
+		fprintf(outfile, "        Generic (\n");
+		fprintf(outfile, "            GATE_INPUT_SIZE : integer := %d;\n", errorsCnt);
+		fprintf(outfile, "            LOG_GATE_INPUT_SIZE : integer := %d);\n", (int) ceil(log(errorsCnt)/log(2)));
+		fprintf(outfile, "        Port (\n"\
+						 "            input_vec : in  STD_LOGIC_VECTOR(GATE_INPUT_SIZE-1 downto 0);\n");
+		fprintf(outfile, "            output : out  STD_LOGIC)\n"\
+						 "        ;\n");
+		fprintf(outfile, "    end component;\n\n");
+	}
 
 	fprintf(outfile, "    component comparator_coarse is\n");
 	fprintf(outfile, "        Generic (\n" \
@@ -384,7 +386,7 @@ void XDWSFOut::printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* f
 
 	fprintf(outfile, "    signal cc0_cmp_in, cc1_cmp_in: STD_LOGIC_VECTOR(%d downto 0);\n", 3*errorsCnt-1);
 	fprintf(outfile, "    signal cf0_cmp_outvec, cf1_cmp_outvec: STD_LOGIC_VECTOR(%d downto 0);\n", 2*ft.maxsize-1);
-	fprintf(outfile, "    signal comp_coarse_out0, comp_coarse_out1 : STD_LOGIC_VECTOR(%d downto 0);\n", errorsCnt-1);
+	fprintf(outfile, "    signal comp_coarse_out : STD_LOGIC_VECTOR(%d downto 0);\n", 2*errorsCnt-1);
 	fprintf(outfile, "    signal comp_fine_in0, comp_fine_in1 : STD_LOGIC_VECTOR(%d downto 0);\n", ft.maxsize-1);
 	fprintf(outfile, "    signal comp_fine_out0, comp_fine_out1 : STD_LOGIC_VECTOR(%d downto 0);\n", ft.maxsize-1);
 
@@ -458,22 +460,26 @@ void XDWSFOut::printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* f
 	fprintf(outfile, "            inVecA(%d downto %d) => cc0_cmp_in,\n", errorsCnt*6-1, errorsCnt*3);
 	fprintf(outfile, "            inVecB(%d downto 0) => cc1_cmp_in,\n", errorsCnt*3-1);
 	fprintf(outfile, "            inVecB(%d downto %d) => cc1_cmp_in,\n", errorsCnt*6-1, errorsCnt*3);
-	fprintf(outfile, "            errors(%d downto 0) => comp_coarse_out0,\n", errorsCnt-1);
-	fprintf(outfile, "            errors(%d downto %d) => comp_coarse_out1\n", 2*errorsCnt-1, errorsCnt);
+	fprintf(outfile, "            errors(%d downto 0) => comp_coarse_out(%d downto 0),\n", errorsCnt-1, errorsCnt-1);
+	fprintf(outfile, "            errors(%d downto %d) => comp_coarse_out(%d downto %d)\n", 2*errorsCnt-1, errorsCnt, 2*errorsCnt-1, errorsCnt);
 	fprintf(outfile, "        );\n");
 
 	//Error aggregation instantiation************************************************************
-	fprintf(outfile, "    error_aggreg : multiple_input_or\n");
-	fprintf(outfile, "        port map (\n");
-	fprintf(outfile, "            input_vec => comp_coarse_out0,\n");
-	fprintf(outfile, "            output => sig_errorAgg(0)\n");
-	fprintf(outfile, "    );\n");
+	if(errorsCnt > 1){
+		fprintf(outfile, "    error_aggreg : multiple_input_or\n");
+		fprintf(outfile, "        port map (\n");
+		fprintf(outfile, "            input_vec => comp_coarse_out(%d downto 0),\n",errorsCnt-1);
+		fprintf(outfile, "            output => sig_errorAgg(0)\n");
+		fprintf(outfile, "    );\n");
 
-	fprintf(outfile, "    error_aggreg2 : multiple_input_or\n");
-	fprintf(outfile, "        port map (\n");
-	fprintf(outfile, "            input_vec => comp_coarse_out1,\n");
-	fprintf(outfile, "            output => sig_errorAgg(1)\n");
-	fprintf(outfile, "    );\n");
+		fprintf(outfile, "    error_aggreg2 : multiple_input_or\n");
+		fprintf(outfile, "        port map (\n");
+		fprintf(outfile, "            input_vec => comp_coarse_out(%d downto %d),\n",2*errorsCnt-1, errorsCnt);
+		fprintf(outfile, "            output => sig_errorAgg(1)\n");
+		fprintf(outfile, "    );\n");
+	} else {
+		fprintf(outfile, "\n    sig_errorAgg <= comp_coarse_out;\n\n");
+	}
 
 	fprintf(outfile, "    sig_checker : comparator_fine\n");
 	fprintf(outfile, "        port map (\n");
