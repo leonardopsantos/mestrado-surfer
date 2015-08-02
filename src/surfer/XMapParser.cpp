@@ -919,43 +919,6 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 	circ_cpy0.ClearNets();
 	circ_cpy1.ClearNets();
 
-	ofstream ucf_out;
-	ucf_out.open ("loc.ucf");
-
-	ucf_out << "# LUTs LOC\n";
-
-	vector<Lut*>::iterator cpy0_lut_it;
-
-	// Sanity check
-	for(cpy0_lut_it = circ_cpy1.luts.begin(); cpy0_lut_it < circ_cpy1.luts.end(); cpy0_lut_it++) {
-		Lut *cpy1_lut = *cpy0_lut_it;
-		Lut *cpy0_lut = circ_cpy0.GetLutByName(cpy1_lut->name);
-
-		if( cpy0_lut == NULL ) {
-			cout << "ERROR: " <<  cpy1_lut->name << " only found on cpy1!\n";
-			continue;
-		}
-	}
-
-	for(cpy0_lut_it = circ_cpy0.luts.begin(); cpy0_lut_it < circ_cpy0.luts.end(); cpy0_lut_it++) {
-		Lut *cpy0_lut = *cpy0_lut_it;
-		Lut *synth_lut = synth_circ.GetLutByName(cpy0_lut->name);
-		Lut *cpy1_lut = circ_cpy1.GetLutByName(cpy0_lut->name);
-		if( cpy1_lut == NULL ) {
-			cout << "ERROR: " <<  cpy0_lut->name << " only found on cpy0!\n";
-			continue;
-		}
-
-		if( synth_lut == NULL ) {
-			cout << "WARNING: LUT " <<  cpy0_lut->name << " not found on post-synthesis!\n";
-		}
-
-		cpy0_lut->printLOC("cut/cpy0/", ucf_out);
-		cpy1_lut->printLOC("cut/cpy1/", ucf_out);
-	}
-
-	ucf_out.close();
-
 	return 0;
 }
 

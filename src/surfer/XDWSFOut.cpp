@@ -127,6 +127,53 @@ static inline std::string &rtrim(std::string &s) {
 }
 
 /**
+ * Prints the LOC constrain for all LUT that appear on all three circuits
+ * @param synth_circ Post-synthsis VHDL model
+ * @param circ_cpy0 Post-mapping cut/cpy0 VHDL model
+ * @param circ_cpy1 Post-mapping cut/cpy1 VHDL model
+ */
+void XDWSFOut::printLOC(Circuit& synth_circ, Circuit& circ_cpy0, Circuit& circ_cpy1)
+{
+	ofstream ucf_out;
+	ucf_out.open ("loc.ucf");
+
+	ucf_out << "\n# LUTs LOC constrains\n";
+
+	vector<Lut*>::iterator lut_it;
+
+	// Sanity check
+	for(lut_it = circ_cpy1.luts.begin(); lut_it < circ_cpy1.luts.end(); lut_it++) {
+		Lut *cpy1_lut = *lut_it;
+		Lut *cpy0_lut = circ_cpy0.GetLutByName(cpy1_lut->name);
+
+		if( cpy0_lut == NULL ) {
+			cout << "ERROR: " <<  cpy1_lut->name << " only found on cpy1!\n";
+			continue;
+		}
+	}
+
+	for(lut_it = circ_cpy0.luts.begin(); lut_it < circ_cpy0.luts.end(); lut_it++) {
+		Lut *cpy0_lut = *lut_it;
+		Lut *synth_lut = synth_circ.GetLutByName(cpy0_lut->name);
+		Lut *cpy1_lut = circ_cpy1.GetLutByName(cpy0_lut->name);
+		if( cpy1_lut == NULL ) {
+			cout << "ERROR: " <<  cpy0_lut->name << " only found on cpy0!\n";
+			continue;
+		}
+
+		if( synth_lut == NULL ) {
+			cout << "WARNING: LUT " <<  cpy0_lut->name << " not found on post-synthesis!\n";
+			continue;
+		}
+
+		cpy0_lut->printLOC("cut/cpy0/", ucf_out);
+		cpy1_lut->printLOC("cut/cpy1/", ucf_out);
+	}
+
+	ucf_out.close();
+}
+
+/**
  * Prints both VHD files.
  * @param ft Fault-tolerance information
  * @param circIn Post-synthsis circuit

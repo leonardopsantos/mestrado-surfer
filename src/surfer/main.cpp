@@ -321,6 +321,7 @@ int main(int argc, char *argv[]){
 		ftSelectiveXilinx fts(8);
 		fts.buildFtSelectiveCirc(circ, circ_cpy0, circ_cpy1);
 		XDWSFOut dwsfOut;
+		dwsfOut.printLOC(circ, circ_cpy0, circ_cpy1);
 		dwsfOut.printOutput(fts, &circ, filename);
 		return 0;
 	}
