@@ -65,8 +65,10 @@ void XSynthParser::parse(char *filename, Circuit &circ){
 	//gets top entity name
 	sscanf(buf, "entity %s is\n", name);
 	circ.name.assign(name);
-	cout << "# "<< circ.name << endl;
-	
+	cout << std::string(circ.name.length()+4, '#')<< endl;
+	cout << "# "<< circ.name << " #" <<endl;
+	cout << std::string(circ.name.length()+4, '#')<< endl;
+
 	nextNet = 0; //Next net
 	nextComp = 0; //Next component
 	nextLut = 0;
