@@ -24,6 +24,7 @@ class XDWSFOut : public XDWCCOut {
 		void buildLogicCones(Circuit& circIn);
 		void printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* filename);
 		void printLOC(Circuit &synth_circ, Circuit &circ_cpy0, Circuit &circ_cpy1);
+		void printDeltaLOC(Circuit &synth_circ, Circuit &circ_cpy0, Circuit &circ_cpy1);
 
 	private:
 		void buildNetLogicConePOs(Net* po, Net* net, int depth);

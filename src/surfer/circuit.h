@@ -39,7 +39,7 @@ using namespace std;
 //ONE: component that sets a signal to VCC permanently
 enum compType { LUT, LUT6, LUT5, MUXF7, MUXF8, MUXCY, XORCY, MUX, BUF, INV, FDR, 
 		FDRE, FDRS, FDRSE, ADDER, DSP48E, SHORT, ZERO, ONE, X_ROC, X_TOC,
-		X_CARRY4, X_ONE, X_ZERO, UNKNOWN };
+		X_CARRY4, X_ONE, X_ZERO, X_OBUF, UNKNOWN };
 
 //possible signal values:
 //GND: signal has constant value zero

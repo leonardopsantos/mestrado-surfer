@@ -90,6 +90,9 @@ compType XMapParser::string2type(char *src)
 	if(strstr(src, "X_ZERO"))
 		return X_ZERO;
 
+	if(strstr(src, "X_OBUF"))
+		return X_OBUF;
+
 	return UNKNOWN;
 }
 
@@ -211,13 +214,18 @@ char s[128], *p;
 
 	// SLICE_X33Y145
 
-	if( strstr(loc, "SLICE_") == NULL )
+	if( strstr(loc, "SLICE_") != NULL ) {
+		for(i = 0, p = loc+7; i < sizeof(s)-1 && *p != '\0' && *p != 'Y'; i++)
+			s[i] = *p++;
+
+		s[i] = '\0';
+	} else if( strstr(loc, "IOB_") != NULL ) {
+		for(i = 0, p = loc+5; i < sizeof(s)-1 && *p != '\0' && *p != 'Y'; i++)
+			s[i] = *p++;
+
+		s[i] = '\0';
+	} else
 		return -1;
-
-	for(i = 0, p = loc+7; i < sizeof(s)-1 && *p != '\0' && *p != 'Y'; i++)
-		s[i] = *p++;
-
-	s[i] = '\0';
 
 	sscanf(s, "%d", &l->locX);
 	sscanf(p+1, "%d", &l->locY);
@@ -419,15 +427,21 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					newLut->tableO6[1] = false;
 					inFile.getline(buf, BUF_SIZE); //input line
 					getNetName(buf + 11, name);
-					netSrc = symbolTable[name];
-					newLut->inputs.push_back(netSrc);
-					netSrc->outputs.push_back(newLut);
+					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') &&
+						!(name[0] == '\'' && name[1] == '0' && name[2] == '\'') ) { // '1','0'
+						netSrc = symbolTable[name];
+						newLut->inputs.push_back(netSrc);
+						netSrc->outputs.push_back(newLut);
+					}
 
 					inFile.getline(buf, BUF_SIZE); //output line
 					getNetName(buf + 11, name);
-					netTarg = symbolTable[name];
-					newLut->outputs.push_back(netTarg);
-					netTarg->setInput(newLut);
+					if( !(name[0] == '\'' && name[1] == '1' && name[2] == '\'') &&
+						!(name[0] == '\'' && name[1] == '0' && name[2] == '\'') ) { // '1','0'
+						netTarg = symbolTable[name];
+						newLut->outputs.push_back(netTarg);
+						netTarg->setInput(newLut);
+					}
 					circ.luts.push_back(newLut);
 
 					inFile.getline(buf, BUF_SIZE); //skips ");"
@@ -772,6 +786,41 @@ int XMapParser::parseArchitecture(ifstream &inFile, Circuit &circ)
 					} while( strstr(buf, "    );") == NULL );
 					break;
 
+				case X_OBUF:
+					newBuf = new Buf(name, nextComp++);
+
+					inFile.getline(buf, BUF_SIZE); //skips "generic map("
+
+					inFile.getline(buf, BUF_SIZE); // LOC => "SLICE_X54Y146",
+
+					sscanf(buf, "      LOC => \"%s\"\n", bitName);
+					ptr = strchr(bitName, '\"');
+					if( ptr != NULL )
+						*ptr = '\0';
+					parseXY(newBuf, bitName);
+
+					inFile.getline(buf, BUF_SIZE); //skips ")"
+					inFile.getline(buf, BUF_SIZE); //skips "port map("
+
+					inFile.getline(buf, BUF_SIZE); //input line
+					getNetName(buf + 11, name);
+					netSrc = symbolTable[name];
+					newBuf->inputs.push_back(netSrc);
+					netSrc->outputs.push_back(newBuf);
+
+					inFile.getline(buf, BUF_SIZE); //output line
+					getNetName(buf + 11, name);
+					netTarg = symbolTable[name];
+					newBuf->outputs.push_back(netTarg);
+					netTarg->setInput(newBuf);
+//					if(netTarg->isPO){
+						circ.components.push_back(newBuf);
+						nextComp++;
+//					}
+
+					inFile.getline(buf, BUF_SIZE); //skips ");"
+					break;
+
 				default:
 					end = true;
 					break;
@@ -918,6 +967,53 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 
 	circ_cpy0.ClearNets();
 	circ_cpy1.ClearNets();
+
+	return 0;
+}
+
+int XMapParser::parseCpy0(char *synth_filename, Circuit &synth_circ, string &map_filename, Circuit &circ_cpy0)
+{
+
+	circ_cpy0.clear();
+
+	ifstream inFile(map_filename.c_str());
+	circ_cpy0.VhdlName = map_filename;
+
+	string text_line, entity_name;
+
+	if( findSequence(inFile, "entity "+synth_circ.name, &text_line) == 0 )
+		return -1;
+
+	// not the same as synth_circ.name ( _INST_1 )
+	std::stringstream ss(text_line);
+	std::string item;
+	while (std::getline(ss, item, ' ')) {
+		if( item.find(synth_circ.name) != std::string::npos ) {
+			entity_name = item;
+			break;
+		}
+	}
+
+	circ_cpy0.name = entity_name;
+
+	if( findSequence(inFile, "port (", &text_line) == 0 )
+		return -1;
+
+	parsePiPos(inFile, circ_cpy0);
+
+	if( findSequence(inFile, "architecture Structure of " + entity_name + " is", &text_line) == 0 ) {
+		cout << "Can't find architecture of" << entity_name << "!!\n";
+		return -1;
+	}
+
+	int i;
+
+	// nice, we have the architecture, now parse it
+	i = parseArchitecture(inFile, circ_cpy0);
+	if( i != 0 ) return -1;
+
+//	circ_cpy0.ClearBuffers();
+	circ_cpy0.ClearNets();
 
 	return 0;
 }

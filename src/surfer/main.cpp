@@ -50,6 +50,7 @@ int main(int argc, char *argv[]){
 		cout << "-ffc: Flip-flop inputs and POs comparison only" << endl;
 		cout << "-epws: Make comparator width the same as the # of POs" << endl;
 		cout << "-dwsf <input_file>: Use only DWC with selective fine comparison grain" << endl; //*
+		cout << "-loc <input_file>: Parses the post-mapping model to read the LOC constrains. Creates a UCF with duplicated LOC constrains" << endl; //*
 		exit(0);
 	}
 
@@ -105,6 +106,16 @@ int main(int argc, char *argv[]){
 					options[OPT_FF_INPUT_CMP] = true;
 					continue;
 				}
+				if(strstr(argv[i], "-loc")){
+					options[OPT_LOC] = true;
+					if( i == argc-1 ) {
+						cout << "Need post-mapping vhdl file for -loc option!!" << endl; //*
+						exit(0);
+					}
+					post_map_vhd.append(argv[++i]);
+					continue;
+				}
+				break;
 			case 3:
 				if(strstr(argv[i], "-di")){
 					options[OPT_DUPLICATE_PI] = true;
@@ -296,6 +307,9 @@ int main(int argc, char *argv[]){
 	if(options[OPT_DWSF]){
 		strcat(filename, "_dsf");
 	}
+	if(options[OPT_ERROR_PO_SAMEW]){
+		strcat(filename, "_ewps");
+	}
 	strcat(filename, ".vhd");
 
 	Circuit circ;
@@ -308,6 +322,12 @@ int main(int argc, char *argv[]){
 
 	if(options[OPT_DWCC]){
 		dwccOut.printOutput(&circ, filename);
+		if(options[OPT_LOC]) {
+			Circuit circ_cpy0, circ_cpy1;
+			MapParser.parseCpy0(argv[1], circ, post_map_vhd, circ_cpy0);
+			XDWSFOut dwsfOut;
+			dwsfOut.printDeltaLOC(circ, circ_cpy0, circ_cpy1);
+		}
 		exit(0);
 	}
 	

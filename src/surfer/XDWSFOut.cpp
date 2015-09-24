@@ -548,6 +548,38 @@ void XDWSFOut::printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* f
 	fclose(outfile);
 }
 
+/**
+ * Prints the LOC constrains for cpy1 LUTs based on cpy0/synthsis LUTs LOC
+ * @param synth_circ Post-synthsis VHDL model
+ * @param circ_cpy0 Post-mapping cut/cpy0 VHDL model
+ * @param circ_cpy1 Post-mapping cut/cpy1 VHDL model
+ */
+void XDWSFOut::printDeltaLOC(Circuit& synth_circ, Circuit& circ_cpy0, Circuit& circ_cpy1)
+{
+	ofstream ucf_out;
+	ucf_out.open ("loc.ucf");
+
+	ucf_out << "\n# LUTs LOC constrains\n";
+
+	vector<Lut*>::iterator lut_it;
+
+	for(lut_it = circ_cpy0.luts.begin(); lut_it < circ_cpy0.luts.end(); lut_it++) {
+		Lut *cpy0_lut = *lut_it;
+		Lut *synth_lut = synth_circ.GetLutByName(cpy0_lut->name);
+
+		if( synth_lut == NULL ) {
+			cout << "WARNING: LUT " <<  cpy0_lut->name << " not found on post-synthesis!\n";
+			continue;
+		}
+
+		ucf_out << "INST \"" << "cut/cpy0/" << cpy0_lut->name << "\" LOC=SLICE_X" << cpy0_lut->locX << "Y"<< cpy0_lut->locY << ";\n";
+		ucf_out << "INST \"" << "cut/cpy1/" << cpy0_lut->name << "\" LOC=SLICE_X" << cpy0_lut->locX << "Y"<< cpy0_lut->locY+10 << ";\n";
+	}
+
+	ucf_out.close();
+}
+
+
 // netgen -intstyle ise -s 2  -pcf counter_timing.pcf -rpw 100 -tpw 0 -ar Structure -tm counter_timing -w -dir netgen/map -ofmt vhdl -sim counter_timing_map.ncd counter_timing_map.vhd
 
 // /opt/Xilinx/13.4/ISE_DS/ISE/bin/lin64/netgen -intstyle ise -s 2  -pcf alu4.new.pcf -rpw 100 -tpw 0 -ar Structure -tm fault_inj_top -w -dir netgen/map -ofmt vhdl -sim alu4.new.map.ncd alu4.new_timing_map.vhd

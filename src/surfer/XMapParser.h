@@ -21,6 +21,7 @@ class XMapParser: public XSynthParser {
 
 	public:
 		int parse(char *synth_filename, Circuit &synth_circ, string &map_filename, Circuit &circ_cpy0, Circuit &circ_cpy1);
+		int parseCpy0(char *synth_filename, Circuit &synth_circ, string &map_filename, Circuit &circ_cpy0);
 		int findSequence(ifstream &inFile, string seq, string *text_line);
 };
 
