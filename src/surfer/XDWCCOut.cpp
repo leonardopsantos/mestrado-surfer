@@ -377,9 +377,9 @@ void XDWCCOut::printOutput(Circuit* circIn, const char* filename){
 				fprintf(outfile, "\t);\n");
 			}
 		} else {
-			fprintf(outfile, "\terrorDetected <= errorVec(0);\n");
+			fprintf(outfile, "\terrorDetected <= sig_errorVec(0);\n");
 			if(options[OPT_2RAIL])
-				fprintf(outfile, "\terrorDetectedPO <= errorVecPO(0);\n");
+				fprintf(outfile, "\terrorDetectedPO <= sig_errorVecPO(0);\n");
 		}
 	}
 	
