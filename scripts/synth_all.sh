@@ -1,5 +1,7 @@
 #!/bin/bash
 
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
 function get_threads() {
 	threads=$(ps ax | grep synth_bench.sh | grep -v grep | wc -l)
 }
@@ -34,6 +36,8 @@ do
 	fi
 done
 
-#for i in ${BHS[@]}; do
-	#$DIR/synth_bench.sh $i
-#done
+for job in `jobs -p`
+do
+echo $job
+    wait $job
+done
