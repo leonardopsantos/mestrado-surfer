@@ -1,6 +1,6 @@
 base_folder=("evaluatorRT")
 
-if [ ! -x $base_folder/tables/ ]; then
+if [ ! -x $base_folder/tables ]; then
 	mkdir $base_folder/tables
 fi
 

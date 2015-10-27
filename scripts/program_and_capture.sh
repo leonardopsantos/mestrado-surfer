@@ -19,5 +19,6 @@ for bench in $BNCHS; do
 
 	if [ $? -eq 0 ]; then
 		$HPWD/capture `date +%Y%m%d-%H%M`-$bench.sig
+		echo "Capture end: "; date +%Y%m%d-%H%M
 	fi
 done

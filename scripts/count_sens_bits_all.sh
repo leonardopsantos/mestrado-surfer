@@ -3,7 +3,7 @@ COUNT=/home/lsantos/work/pep/scripts_cygwin_xilinx/signFaultInjector/src/capture
 
 rm -f count.log
 
-for i in apex4 ex5p apex2 alu_cell_64b seq misex3 alu_cell spla ex1010 alu4 pdc des
+for i in alu4 alu_cell alu_cell_64b apex2 apex4 des ex1010 ex5p misex3 pdc seq spla
 do
 #	circname=$(echo $i | sed s/.txt/""/ | sed s:dwcf_nri_di_signs/full/:"":)
 	circname=$i

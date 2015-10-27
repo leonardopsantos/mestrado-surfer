@@ -17,11 +17,9 @@ do
 
 	rm -f $OUTDIR/circNamesFile.txt
 
-	for i in test/*.sig1
+	for circname in alu4 alu_cell alu_cell_64b apex2 apex4 des ex1010 ex5p misex3 pdc seq spla
 	do
-		circname=$(basename $i)
-		circname=${circname##*-}
-		circname=${circname%.*}
+		sigfile=$(ls test/*$circname.sig1)
 		echo $circname
 
 		int_bits=$(cat sizes_table | grep "$circname int" | sed s/"$circname int "//)
@@ -39,8 +37,8 @@ do
 		for table in outputs/realTimeScaled/$occup/*$circtab*.tab
 		do
 			tablecirc=$(echo $table | sed s/_table/""/ | sed  s/.tab/""/ | sed s:outputs/realTimeScaled/$occup/:"":)
-			echo $i $table $tablecirc
-			$EVALUATOR $i $table $zerotable $int_bits $po_bits -s $delay1_cg $delay2_fg $occup
+			echo $sigfile $table $tablecirc
+			$EVALUATOR $sigfile $table $zerotable $int_bits $po_bits -s $delay1_cg $delay2_fg $occup
 		done
 	done
 	mv *.txt $OUTDIR
