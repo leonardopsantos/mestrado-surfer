@@ -1,6 +1,8 @@
 
 #include "buildTable.h"
 
+//#define PRINT_HISTOGRAMS 1
+
 /*********************************************************************************************************************/
 
 unsigned int bestFAddr(vector<unsigned int> &histogram, unsigned long long int *best_mttr, vector<unsigned long long int> &accMTTR){
@@ -159,13 +161,16 @@ void buildTableRT(tableType &signatureTable, faddr2signsType &faddr2signs, unsig
 
 		acc_best_accRT += best_accRT;
 
-		/*if(first_run) { //histogram printing functionalities
+#ifdef PRINT_HISTOGRAMS
+		if(first_run) { //histogram printing functionalities
 			FILE* hist_file;
 			char hfilename[128];
 			cnt++;
 
 
-			if(cnt == 5000 || cnt == 7500 || cnt == 20000)
+			if(cnt == (signatureTable.size()/4) ||
+					cnt == (signatureTable.size()/2) ||
+					cnt == (3*signatureTable.size()/4))
 				monitoring = 1;
 
 			if(monitoring && (*histogram)[TOTAL_HITS] > 3000){
@@ -173,12 +178,13 @@ void buildTableRT(tableType &signatureTable, faddr2signsType &faddr2signs, unsig
 				sprintf(hfilename, "hist_rt_%d_%d.txt", deadline, cnt);
 				hist_file = fopen(hfilename, "w");
 				int k;
-				for(k=min_idx; k<=TOTAL_HITS; k++)
+				for(k=0; k<=TOTAL_HITS; k++)
 					fprintf(hist_file, "%d\n", (*histogram)[k]);
 				fprintf(hist_file, "%d\n", best_faddr);
 				fclose(hist_file);
 			}
-		} */
+		}
+#endif /* PRINT_HISTO */
 	}
 	printf("done\n");
 
