@@ -338,7 +338,7 @@ int main(int argc, char *argv[]){
 	if(options[OPT_DWSF]){
 		Circuit circ_cpy0, circ_cpy1;
 		MapParser.parse(argv[1], circ, post_map_vhd, circ_cpy0, circ_cpy1);
-		ftSelectiveXilinx fts(8);
+		ftSelectiveXilinx fts(6);
 		fts.buildFtSelectiveCirc(circ, circ_cpy0, circ_cpy1);
 		XDWSFOut dwsfOut;
 		dwsfOut.printLOC(circ, circ_cpy0, circ_cpy1);
