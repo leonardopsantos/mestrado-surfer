@@ -41,7 +41,7 @@ int main_loop(int sfd, FILE *outfp)
 //struct file_header_t outf_header;
 fd_set readfds, tmpfds;
 struct timeval tmo;
-int selret, i, first_sig;
+int selret, i, first_sig, count;
 unsigned char ttybuf[512];
 
 	FD_ZERO(&readfds);
@@ -56,17 +56,19 @@ unsigned char ttybuf[512];
 	#endif /* PSEUDOTTY */
 
 //	time(&(outf_header.time_start));
-	printf("Start!\n");
 
 //	fwrite(&outf_header, sizeof(outf_header), 1, outfp);
 
 	first_sig = 1;
+	count = 0;
+
+	printf("Start! %d %d\n", first_sig, count);
 
 	while (1) {
 		#ifdef PSEUDOTTY
 		tmo.tv_sec = 5;         /* seconds */
 		#else
-		tmo.tv_sec = (first_sig == 1 ? 7200 : 1200);         /* seconds */
+		tmo.tv_sec = (first_sig == 1 ? 10800 : 1200);         /* seconds */
 		#endif /* PSEUDOTTY */
 		tmo.tv_usec = 0;        /* microseconds */
 		tmpfds = readfds;
@@ -85,6 +87,7 @@ unsigned char ttybuf[512];
 				continue;
 			} else {
 				perror("WTF!");
+				printf("WTF!\n");
 				goto ex_it;
 			}
 		} else if( i == 0 ) {
@@ -94,9 +97,10 @@ unsigned char ttybuf[512];
 		fwrite(ttybuf, i, 1, outfp);
 
 		first_sig = 0;
+		count++;
 	}
 
-	printf("End!\n");
+	printf("End! Captured %d signatures.\n", count);
 
 	/*
 	fwrite(&outf_header, sizeof(outf_header), 1, outfp);
