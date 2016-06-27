@@ -173,6 +173,26 @@ void XDWSFOut::printLOC(Circuit& synth_circ, Circuit& circ_cpy0, Circuit& circ_c
 	ucf_out.close();
 }
 
+void XDWSFOut::printDWSFSelectedLOC(ftSelectiveXilinx& ft, Circuit& circ_cpy0, Circuit& circ_cpy1)
+{
+	ofstream ucf_out;
+	ucf_out.open ("dwsf_selected_loc.ucf");
+
+	ucf_out << "\n# DWSF selected LUTs LOC constrains\n";
+
+	for(vector<Net*>::iterator it = ft.selected_nets.begin(); it < ft.selected_nets.end(); ++it) {
+		Net *n = *it;
+		Lut *cpy0_lut = circ_cpy0.GetLutByName(n->input->name);
+		Lut *cpy1_lut = circ_cpy1.GetLutByName(n->input->name);
+
+		cpy0_lut->printLOC("cut/cpy0/", ucf_out);
+		cpy1_lut->printLOC("cut/cpy1/", ucf_out);
+
+	}
+
+	ucf_out.close();
+}
+
 /**
  * Prints both VHD files.
  * @param ft Fault-tolerance information
@@ -181,7 +201,6 @@ void XDWSFOut::printLOC(Circuit& synth_circ, Circuit& circ_cpy0, Circuit& circ_c
  */
 void XDWSFOut::printDWSF(ftSelectiveXilinx &ft, Circuit* circ)
 {
-
 	std::ifstream inFile(circ->VhdlName.c_str());
 	std::string outname;
 	std::string text_line;
@@ -286,8 +305,6 @@ void XDWSFOut::printDWSF(ftSelectiveXilinx &ft, Circuit* circ)
 
 void XDWSFOut::printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* filename)
 {
-	this->printDWSF(ft, circIn);
-
 	FILE* outfile;
 	int i, j, k;
 	char buf[BUFSIZE], buf2[BUFSIZE]; //auxiliary buffers for variable names
@@ -461,7 +478,7 @@ void XDWSFOut::printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* f
 
 	fprintf(outfile, "begin\n"); /****************************************************/
 
-	//instanstiate the two copies
+	//instantiate the two copies
 	for(i=0; i<2; i++){
 		fprintf(outfile, "    cpy%d : %s\n", i, (circ->name+"_dwsf").c_str());
 		fprintf(outfile, "        port map(\n");

@@ -342,6 +342,8 @@ int main(int argc, char *argv[]){
 		fts.buildFtSelectiveCirc(circ, circ_cpy0, circ_cpy1);
 		XDWSFOut dwsfOut;
 		dwsfOut.printLOC(circ, circ_cpy0, circ_cpy1);
+		dwsfOut.printDWSFSelectedLOC(fts, circ_cpy0, circ_cpy1);
+		dwsfOut.printDWSF(fts, &circ);
 		dwsfOut.printOutput(fts, &circ, filename);
 		return 0;
 	}

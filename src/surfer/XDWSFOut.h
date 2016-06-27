@@ -24,11 +24,12 @@ class XDWSFOut : public XDWCCOut {
 		void buildLogicCones(Circuit& circIn);
 		void printOutput(ftSelectiveXilinx &ft, Circuit* circIn, const char* filename);
 		void printLOC(Circuit &synth_circ, Circuit &circ_cpy0, Circuit &circ_cpy1);
+		void printDWSFSelectedLOC(ftSelectiveXilinx& ft, Circuit& circ_cpy0, Circuit& circ_cpy1);
+		void printDWSF(ftSelectiveXilinx &ft, Circuit* circIn);
 		void printDeltaLOC(Circuit &synth_circ, Circuit &circ_cpy0, Circuit &circ_cpy1);
 
 	private:
 		void buildNetLogicConePOs(Net* po, Net* net, int depth);
-		void printDWSF(ftSelectiveXilinx &ft, Circuit* circIn);
 };
 
 #endif // _INCLUDED_XDWSFOUT_H_

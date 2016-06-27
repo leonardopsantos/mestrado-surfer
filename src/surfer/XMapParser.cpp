@@ -844,6 +844,11 @@ int XMapParser::parse(char *synth_filename, Circuit &synth_circ, string &map_fil
 	circ_cpy1.clear();
 
 	ifstream inFile(map_filename.c_str());
+	if( inFile.is_open() != true ) {
+		cout << "error opening " << map_filename.c_str() << endl;
+		exit(-1);
+	}
+
 	circ_cpy0.VhdlName = map_filename;
 	circ_cpy1.VhdlName = map_filename;
 

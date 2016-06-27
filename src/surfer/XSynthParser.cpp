@@ -21,7 +21,7 @@ using namespace std;
 
 Circuit* circg;
 
-void XSynthParser::parse(char *filename, Circuit &circ){
+void XSynthParser::parse(char *filename, Circuit &circ) {
 	ifstream inFile;
 	char buf[BUF_SIZE], name[BUF_SIZE], bitName[BUF_SIZE], direction[4], type[128], to_downto[32], lutInit[18];
 	Net* newNet;
@@ -35,8 +35,14 @@ void XSynthParser::parse(char *filename, Circuit &circ){
 	int i, j;
 	bool end=false;
 	Net *netTarg, *netSrc;
-	
+
 	inFile.open(filename);
+
+	if( inFile.is_open() == false ) {
+		cout << "Error opening " << filename << endl;
+		exit(-1);
+	}
+
 	circ.VhdlName = string(filename);
 	
 	circ.components.clear();
