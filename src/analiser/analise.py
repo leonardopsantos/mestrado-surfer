@@ -223,6 +223,8 @@ def plot_fits():
 
     # Removes trailing 0.0s in the FIT values and plot the results
 
+    fit_subplots = {}
+
     handles = None
     labels = None
 
@@ -281,11 +283,13 @@ def plot_fits():
             i = i+1
 
         sp = fig.add_subplot(4, 3, j+1)
+        fit_subplots[bench] = sp
         sp.plot(slacks[:max], tmp_fits_0_75[bench], color='0.0', linewidth=2.0, label="HST 75 %")
         sp.plot(slacks[:max], tmp_fits_0_50[bench], color='0.33', linewidth=2.0, label="HST 50 %")
         sp.plot(slacks[:max], tmp_fits_0_25[bench], color='0.66', linewidth=2.0, label="HST 25 %")
         sp.plot(slacks[:max], tmp_fits_standard[bench], '--',color='0', linewidth=2.0, label="Standard scrubbing")
         sp.annotate(bench, xy=(0.75, 0.75), xycoords='axes fraction', horizontalalignment='center')
+        sp.yaxis.grid(True)
         handles, labels = sp.get_legend_handles_labels()
         plt.ylabel(r'FIT ($10^9$ device-hours)')
         plt.xlabel(r'Maximum repair time ($\mu$s)')
