@@ -37,6 +37,9 @@ int main(int argc, char *argv[]){
 	list<set<unsigned int> > groupedBits, groupedBitsMTTR;
 
 	faddr2signsType compF2S, compF2SMTTR;
+
+	map<int, unsigned int> bastStaticBySlack;
+
 	if(argc < 5){
 		printf("Use %s <input_file> <sig_size_internal> <sig_size_po> <sign_threshold> <options>\n", argv[0]);
 		printf("Options:\n");
@@ -47,6 +50,7 @@ int main(int argc, char *argv[]){
 		printf("-d <n>: Use dumb heuristics to generate a table with at most n-bit input\n");
 		printf("-s <d1> <d2> <o>: Scale deadline according to circuit delays d1 (ref system: CG)\n");
 		printf("     and d2 (RT system: FG) and occupation factor o");
+		printf("-l: Create tables by best static deadlines\n");
 		exit(0);
 	}
 
@@ -96,6 +100,11 @@ int main(int argc, char *argv[]){
 					delay1_CG=atof(argv[++i]);
 					delay2_FG=atof(argv[++i]);
 					occup=atof(argv[++i]);
+					continue;
+				}
+
+				if(strstr(argv[i], "-l")){
+					options[OPT_BEST_STATIC_SLACKS] = true;
 					continue;
 				}
 
@@ -169,6 +178,8 @@ int main(int argc, char *argv[]){
             evalMTTR4RT(signatureTable, faddr2signsMTTR, compF2SMTTR, deadline, deadline, groupedBitsMTTR);
         }
 
+        bastStaticBySlack[deadline] = best_static_out;
+
 		//printVhdl(circname, faddr2signs, best_static_out);
 
 		//buildInterbitRelations(faddr2signs, signatureTable);
@@ -179,5 +190,13 @@ int main(int argc, char *argv[]){
                 buildDumb(circname, signatureTable, faddr2signs, compF2S, best_static_out, deadline, deadline, groupedBits);
 		}
 	}
+
+    if(options[OPT_BEST_STATIC_SLACKS]) {
+    	for(map<int, unsigned int>::const_iterator iter=bastStaticBySlack.begin();
+    			iter!=bastStaticBySlack.end(); ++iter) {
+    		printf("slack %d = %d\n", iter->first, iter->second);
+    	}
+    	bStaticPrintVHDL(circname, bastStaticBySlack);
+    }
 }
 
