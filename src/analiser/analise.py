@@ -9,6 +9,7 @@ fits_0_75 = {}
 fits_0_50 = {}
 fits_0_25 = {}
 fits_standard = {}
+fits_static = {}
 
 def calc_fits(work_dir=".", dwc_dir="."):
     
@@ -20,6 +21,8 @@ def calc_fits(work_dir=".", dwc_dir="."):
     evalRT_MTTRTable_coverage_0_25 = {}
     
     zeroAccRT = {}
+    
+    bestStaticAccRT = {}
     
     evalHits = {}
     sensitive_bits = {}
@@ -124,6 +127,9 @@ def calc_fits(work_dir=".", dwc_dir="."):
             pr = float(evalRT_coverage_0_25[bench][s])/float(evalHits[bench])
             fits_0_25[bench].append(float((1-pr)*0.0000871*float(sensitive_bits[bench])))
 
+
+    fits_static
+
 # 
 # Standard scrubbing
 #
@@ -158,6 +164,45 @@ def calc_fits(work_dir=".", dwc_dir="."):
                             zeroAccRT[bench] = currentline[1:]
                     i = i+1
 
+    dwc_accHits = {}
+
+    with open(dwc_dir + '/outputs/realTime/accHitsFile.txt', 'r') as accHits_file:
+        i = 0
+        y = 0
+        while True:
+            line = accHits_file.readline().rstrip()
+            if not line: break
+            if( (i%15) == 0 ):
+                dwc_accHits[benchmarks[y]] = line
+                y = y +1
+            i = i+1
+
+    for bench in benchmarks:
+        for s, slack in enumerate(slacks):
+            pr = float(zeroAccRT[bench][s])/float(dwc_accHits[bench])
+            fits_standard[bench].append(float((1-pr)*0.0000871*float(dwc_sensitive_bits[bench])))
+
+
+# 
+# Best Static
+#
+
+    with open(work_dir + '/outputs/realTime_tables/fulltable.txt', 'r') as fulltable:
+        while True:
+            line = fulltable.readline().rstrip()
+            if not line: break
+            if line == "bestStaticAccRT":
+                i = 0
+                while i < 12:
+                    line = fulltable.readline().rstrip()
+                    currentline = line.split("\t")
+                    b = currentline[0].split('-')
+                    for bench in benchmarks:
+                        if bench == b[2]:
+                            bestStaticAccRT[bench] = currentline[1:]
+                    i = i+1
+
+
     accHits = {}
 
     with open(dwc_dir + '/outputs/realTime/accHitsFile.txt', 'r') as accHits_file:
@@ -172,9 +217,15 @@ def calc_fits(work_dir=".", dwc_dir="."):
             i = i+1
 
     for bench in benchmarks:
+        fits = []
+        fits.append(0.0000871*float(dwc_sensitive_bits[bench]))
+        fits_static[bench] = fits
+
+    for bench in benchmarks:
         for s, slack in enumerate(slacks):
-            pr = float(zeroAccRT[bench][s])/float(accHits[bench])
-            fits_standard[bench].append(float((1-pr)*0.0000871*float(dwc_sensitive_bits[bench])))
+            pr = float(bestStaticAccRT[bench][s])/float(accHits[bench])
+            fits_static[bench].append(float((1-pr)*0.0000871*float(dwc_sensitive_bits[bench])))
+
 
 def print_fits():
     print "0.75_evalRT_coverage_0"
@@ -209,6 +260,15 @@ def print_fits():
         for f in fits:
             print "%.7f" % round(f,7),
         print ""
+
+    print "Best static"
+    for bench in benchmarks:
+        fits = fits_static[bench]
+        print bench, " ",
+        for f in fits:
+            print "%.7f" % round(f,7),
+        print ""
+
 
 def plot_fits():
     
@@ -288,7 +348,7 @@ def plot_fits():
         sp.plot(slacks[:max], tmp_fits_0_50[bench], color='0.33', linewidth=2.0, label="HST 50 %")
         sp.plot(slacks[:max], tmp_fits_0_25[bench], color='0.66', linewidth=2.0, label="HST 25 %")
         sp.plot(slacks[:max], tmp_fits_standard[bench], '--',color='0', linewidth=2.0, label="Standard scrubbing")
-        sp.annotate(bench, xy=(0.75, 0.75), xycoords='axes fraction', horizontalalignment='center')
+        sp.annotate(bench.replace('_', '\_'), xy=(0.75, 0.75), xycoords='axes fraction', horizontalalignment='center')
         sp.yaxis.grid(True)
         handles, labels = sp.get_legend_handles_labels()
         plt.ylabel(r'FIT ($10^9$ device-hours)')
@@ -296,7 +356,7 @@ def plot_fits():
 
     plt.tight_layout()
 
-    legend = plt.figlegend(handles, labels, loc=(0.11, 0.01), ncol=4, borderaxespad=0.)
+    legend = plt.figlegend(handles, labels, loc=(0.12, 0.01), ncol=4, borderaxespad=0.)
 
     frame = legend.get_frame()
     frame.set_facecolor('0.90')
@@ -312,11 +372,81 @@ def plot_fits():
 
 #    plt.show()
 
+
+
+
+
+    tmp_fits_standard = fits_standard
+    tmp_fits_static = fits_static
+
+    fig = plt.figure(2, figsize=(11, 10.5))
+
+    for j, bench in enumerate(benchmarks):
+
+        while 0.0 in tmp_fits_standard[bench]:
+            try:
+                tmp_fits_standard[bench].remove(0.0)
+            except:
+                break
+
+        while 0.0 in tmp_fits_static[bench]:
+            try:
+                tmp_fits_static[bench].remove(0.0)
+            except:
+                break
+
+        # discover the longest one
+        max = len(tmp_fits_standard[bench])
+        if max < len(tmp_fits_static[bench]):
+           max = len(tmp_fits_static[bench])
+
+        # add last value as 0.0 as to finish the curves at y=0
+        max = max + 1
+
+        i = len(tmp_fits_standard[bench])
+        while i < max:
+            tmp_fits_standard[bench].append(0)
+            i = i+1 
+
+        i = len(tmp_fits_static[bench])
+        while i < max:
+            tmp_fits_static[bench].append(0)
+            i = i+1 
+
+        sp = fig.add_subplot(4, 3, j+1)
+        fit_subplots[bench] = sp
+        sp.plot(slacks[:max], tmp_fits_static[bench], color='0.0', linewidth=2.0, label="Shifted scrubbing")
+        sp.plot(slacks[:max], tmp_fits_standard[bench], '--',color='0', linewidth=2.0, label="Standard scrubbing")
+        sp.annotate(bench.replace('_', '\_'), xy=(0.75, 0.75), xycoords='axes fraction', horizontalalignment='center')
+        sp.yaxis.grid(True)
+        handles, labels = sp.get_legend_handles_labels()
+        plt.ylabel(r'FIT ($10^9$ device-hours)')
+        plt.xlabel(r'Maximum repair time ($\mu$s)')
+
+    plt.tight_layout()
+
+    legend = plt.figlegend(handles, labels, loc=(0.30, 0.01), ncol=4, borderaxespad=0.)
+
+    frame = legend.get_frame()
+    frame.set_facecolor('0.90')
+    for label in legend.get_texts():
+        label.set_fontsize('large')
+     
+    for label in legend.get_lines():
+        label.set_linewidth(1.5)  # the legend line width
+
+    fig.subplots_adjust(bottom=0.11)
+
+#    plt.show()
+
+    fig.savefig('static.pdf', format='pdf', bbox_extra_artists=(legend,), bbox_inches='tight')
+
+
+def usage():
+    print "analise.py <signatures dir> <dwc signatures dir>"
+    sys.exit(-1)
+
 def main(argv):
-    
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print "Error! Need circuit and DWC dir!!"
-        return
 
     work_dir = sys.argv[1]
 
@@ -333,6 +463,12 @@ def main(argv):
         print "Bad directory: ", dwc_dir 
         sys.exit(-1)
 
+    from matplotlib import rc
+    rc('font',**{'family':'sans-serif','sans-serif':['Computer Modern Sans serif']})
+    ## for Palatino and other serif fonts use:
+    #rc('font',**{'family':'serif','serif':['Palatino']})
+    rc('text', usetex=True)
+
     calc_fits(work_dir, dwc_dir)
 
 #    print_fits()
@@ -340,9 +476,9 @@ def main(argv):
     plot_fits()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2 :
-        print "Too few arguments!"
-        sys.exit(-1)
+
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        usage()
 
     sys.exit(main(sys.argv))
     
