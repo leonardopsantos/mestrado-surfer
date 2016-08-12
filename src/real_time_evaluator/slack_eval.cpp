@@ -88,6 +88,23 @@ unsigned int getBSAddrBottom(map<unsigned int, unsigned int> &staticTable, unsig
 	return -1;
 }
 
+/**
+ * from a slack, returns a best static starting frame, rounded down
+ */
+unsigned int getBSAddrNearest(map<unsigned int, unsigned int> &staticTable, unsigned int slack)
+{
+	if( slack <= 1000 ) {
+		return staticTable[1000];
+	} else if( slack > 1000 && slack <= 10000 ) {
+		int s = (slack/1000)*1000;
+		return staticTable[s];
+	} else if( slack > 10000 && slack <= 60000 ) {
+		int s = (slack/10000)*10000;
+		return staticTable[s];
+	}
+	return -1;
+}
+
 inline int calculateSlackCover(vector<unsigned long long> compHist, unsigned int bestStaticAddr, int frames)
 {
 	int i, j, c;
@@ -103,9 +120,11 @@ inline int calculateSlackCover(vector<unsigned long long> compHist, unsigned int
 	return c;
 }
 
-void calculateBestStaticRTCover(ofstream &outFile, vector<unsigned long long> compHist, map<unsigned int, unsigned int> &staticTable)
-{
+#define BS_CRITERIA_BOTTOM	2
+#define BS_CRITERIA_NEAREST	1
 
+void calculateBestStaticRTCover(ofstream &outFile, vector<unsigned long long> compHist, map<unsigned int, unsigned int> &staticTable, int criteria)
+{
 	vector<int> coverage[2062];
 	int i, j;
 	int frames, slack;
@@ -127,12 +146,19 @@ void calculateBestStaticRTCover(ofstream &outFile, vector<unsigned long long> co
 	// (60.000-FRAME_CYCLES-CMD_CYCLES)/FRAME_CYCLES = 1461
 	// 1461 the number of frames that can be scrubbed in 600 us (or 60.000 clock cycles)
 #if 1
+	int last;
 	for(frames = 1; frames < 1462; frames++) {
 		slack = FRAME_CYCLES+CMD_CYCLES+FRAME_CYCLES*frames;
-		bs = getBSAddrBottom(staticTable, slack);
+		if( criteria == BS_CRITERIA_BOTTOM )
+			bs = getBSAddrBottom(staticTable, slack);
+		else
+			bs = getBSAddrNearest(staticTable, slack);
 		cover = calculateSlackCover(compHist, bs, frames);
-		outFile << "slack " << slack*10 << " " << bs << " " << cover << " " << ((double)cover)/Os <<  "\n";
-		cout << "slack " << slack*10 << " " << bs << " " << cover << " " << ((double)cover)/Os <<  "\n";
+		last = bs+frames;
+		if( last > max_idx )
+			last = max_idx;
+		outFile << "slack " << slack*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
+		cout << "slack " << slack*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
 	}
 #endif
 
@@ -198,13 +224,14 @@ int main(int argc, char *argv[]){
 	parseStaticDeadlines(argv[3], slacksBestStaticTable);
 
 	compSigTable = createCompHistograms(signatureTable, transTable, compTable);
+
 	for(tableType::iterator it = compSigTable.begin(); it != compSigTable.end(); ++it) {
-		string filename = benchmark+"_bestStaticEval.txt";
+		string filename = benchmark+"_bottom_bestStaticEval.txt";
 
 		ofstream outFile;
 		outFile.open (filename.c_str());
 
-		calculateBestStaticRTCover(outFile, it->second, slacksBestStaticTable);
+		calculateBestStaticRTCover(outFile, it->second, slacksBestStaticTable, BS_CRITERIA_BOTTOM);
 		outFile.close();
 
 //		printf("Signature histogram:\n");
@@ -212,6 +239,17 @@ int main(int argc, char *argv[]){
 //			printf("\t%llu\n", *it2);
 //		}
 //		printf("\n\n");
+	}
+
+	for(tableType::iterator it = compSigTable.begin(); it != compSigTable.end(); ++it) {
+		string filename = benchmark+"_nearest_bestStaticEval.txt";
+
+		ofstream outFile;
+		outFile.open (filename.c_str());
+
+		calculateBestStaticRTCover(outFile, it->second, slacksBestStaticTable, BS_CRITERIA_NEAREST);
+		outFile.close();
+
 	}
 
 	return 0;
