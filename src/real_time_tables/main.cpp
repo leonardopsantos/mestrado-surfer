@@ -192,10 +192,19 @@ int main(int argc, char *argv[]){
 	}
 
     if(options[OPT_BEST_STATIC_SLACKS]) {
+
+    	char filename[64];
+
+    	snprintf(filename, 64, "%s_slacks_deadlines.txt", circname);
+
+    	circNamesFile = fopen(filename, "a");
     	for(map<int, unsigned int>::const_iterator iter=bastStaticBySlack.begin();
     			iter!=bastStaticBySlack.end(); ++iter) {
+    		fprintf(circNamesFile, "%d %d\n", iter->first, iter->second);
     		printf("slack %d = %d\n", iter->first, iter->second);
     	}
+    	fclose(circNamesFile);
+
     	bStaticPrintVHDL(circname, bastStaticBySlack);
     }
 }
