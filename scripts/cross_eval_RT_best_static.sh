@@ -2,8 +2,8 @@
 
 EVALUATOR=/home/lsantos/work/pep/scripts_cygwin_xilinx/signFaultInjector/src/real_time_evaluator/slackEval
 
-if [ ! -x evaluatorBestStatic ]; then
-	mkdir evaluatorBestStatic
+if [ ! -x outputs/evaluatorBestStatic ]; then
+	mkdir -p outputs/evaluatorBestStatic
 fi
 
 for circname in alu4 alu_cell alu_cell_64b apex2 apex4 des ex1010 ex5p misex3 pdc seq spla
@@ -17,5 +17,5 @@ do
 	echo EVALUATE $circname
 	$EVALUATOR $sigfile $zerotable $statictable
 
-	mv *bestStaticEval.txt evaluatorBestStatic/
+	mv *bestStaticEval.txt outputs/evaluatorBestStatic/
 done
