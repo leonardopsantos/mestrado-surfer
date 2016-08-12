@@ -471,7 +471,7 @@ def main(argv):
 
     calc_fits(work_dir, dwc_dir)
 
-#    print_fits()
+    print_fits()
 
     plot_fits()
 
