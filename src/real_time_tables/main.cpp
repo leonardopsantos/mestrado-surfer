@@ -191,7 +191,46 @@ int main(int argc, char *argv[]){
 		}
 	}
 
+
+
+
+
+
+
     if(options[OPT_BEST_STATIC_SLACKS]) {
+
+    	deadline = 41+41+25;
+
+		if(options[OPT_SCALE_DEADLINE]){
+			total_time = ((double) deadline) / (1.0 - occup);
+			comp_time = total_time - deadline;
+			scaled_deadline = floor( total_time - comp_time*(delay2_FG/delay1_CG) );
+			printf("Deadline %d scaled to %d\n", deadline, scaled_deadline);
+			if(scaled_deadline <= 0){ //a negative scaled deadline means we cannot use this circuit for this application (i.e., it is too slow)
+				scaled_deadline = 1;
+				printf("Negative scaled deadline! We cannot use this circuit\n");
+			}
+		}
+
+		if(options[OPT_SCALE_DEADLINE]){
+			buildTableRT(signatureTable, faddr2signs, &best_static_out, scaled_deadline, deadline, 1);
+			evalMTTR4RT(signatureTable, faddr2signsMTTR, compF2SMTTR, scaled_deadline, deadline, groupedBitsMTTR);
+		} else {
+			buildTableRT(signatureTable, faddr2signs, &best_static_out, deadline, deadline, 1);
+			evalMTTR4RT(signatureTable, faddr2signsMTTR, compF2SMTTR, deadline, deadline, groupedBitsMTTR);
+		}
+
+		bastStaticBySlack[deadline] = best_static_out;
+
+		//printVhdl(circname, faddr2signs, best_static_out);
+
+		//buildInterbitRelations(faddr2signs, signatureTable);
+		if(options[OPT_DUMB]){
+			if(options[OPT_SCALE_DEADLINE])
+				buildDumb(circname, signatureTable, faddr2signs, compF2S, best_static_out, scaled_deadline, deadline, groupedBits);
+			else
+				buildDumb(circname, signatureTable, faddr2signs, compF2S, best_static_out, deadline, deadline, groupedBits);
+		}
 
     	char filename[64];
 
