@@ -7,14 +7,20 @@ import matplotlib.pyplot as plt
 
 benchmarks = []
 fits_standard = {}
+fits_static_top = {}
 fits_static_bottom = {}
+fits_static_nearest = {}
+fits_static_verify = {}
 
 def calc_fits(work_dir=".", dwc_dir=".", static_dir="."):
 
     zeroAccRT = {}
     
-    bestStaticAccRT = {}
-    
+    bestStaticAccRT_bottom = {}
+    bestStaticAccRT_top = {}
+    bestStaticAccRT_nearest = {}
+    verifyBestStaticAccRT = {}
+
     evalHits = {}
     sensitive_bits = {}
 
@@ -92,7 +98,7 @@ def calc_fits(work_dir=".", dwc_dir=".", static_dir="."):
         while True:
             line = accHits_file.readline().rstrip()
             if not line: break
-            if( (i%15) == 0 ):
+            if( (i%16) == 0 ):
                 dwc_accHits[benchmarks[y]] = line
                 y = y +1
             i = i+1
@@ -109,9 +115,7 @@ def calc_fits(work_dir=".", dwc_dir=".", static_dir="."):
 
     accHits = {}
 
-    static_files = glob.glob(static_dir+'/evaluatorBestStatic/*_bottom*.txt')
-
-#   static_files = os.listdir(static_dir+'/evaluatorBestStatic/*_bottom*.txt')
+    static_files = glob.glob(static_dir+'/evaluatorBestStatic/*_bestStaticVerify.txt')
 
     for bench in benchmarks:
         staticFile = [s for s in static_files if bench in s]
@@ -130,34 +134,118 @@ def calc_fits(work_dir=".", dwc_dir=".", static_dir="."):
                 if len(l) != 6 or l[0] != "slack":
                     print "BAD string: ", l
                 pr.append( (float(l[1])/1000, float(l[5])) )
-            bestStaticAccRT[bench] = pr
+            verifyBestStaticAccRT[bench] = pr
+
+    static_files = glob.glob(static_dir+'/evaluatorBestStatic/*_bottom*.txt')
+
+    for bench in benchmarks:
+        staticFile = [s for s in static_files if bench in s]
+        with open(staticFile[0], 'r') as staticTable:
+            pr=[]
+            line = staticTable.readline().rstrip() # min_idx = 1529, max_idx = 2059
+            line = staticTable.readline().rstrip() # cover 666700
+            while True:
+                line = staticTable.readline().rstrip()
+                if not line: break
+                l = line.split(' ')
+                if len(l) != 6 or l[0] != "slack":
+                    print "BAD string: ", l
+                pr.append( (float(l[1])/1000, float(l[5])) )
+            bestStaticAccRT_bottom[bench] = pr
+
+    static_files = glob.glob(static_dir+'/evaluatorBestStatic/*_top*.txt')
+
+    for bench in benchmarks:
+        staticFile = [s for s in static_files if bench in s]
+        with open(staticFile[0], 'r') as staticTable:
+            pr=[]
+            line = staticTable.readline().rstrip() # min_idx = 1529, max_idx = 2059
+            line = staticTable.readline().rstrip() # cover 666700
+            while True:
+                line = staticTable.readline().rstrip()
+                if not line: break
+                l = line.split(' ')
+                if len(l) != 6 or l[0] != "slack":
+                    print "BAD string: ", l
+                pr.append( (float(l[1])/1000, float(l[5])) )
+            bestStaticAccRT_top[bench] = pr
+
+    static_files = glob.glob(static_dir+'/evaluatorBestStatic/*_nearest*.txt')
+
+    for bench in benchmarks:
+        staticFile = [s for s in static_files if bench in s]
+        with open(staticFile[0], 'r') as staticTable:
+            pr=[]
+            line = staticTable.readline().rstrip() # min_idx = 1529, max_idx = 2059
+            line = staticTable.readline().rstrip() # cover 666700
+            while True:
+                line = staticTable.readline().rstrip()
+                if not line: break
+                l = line.split(' ')
+                if len(l) != 6 or l[0] != "slack":
+                    print "BAD string: ", l
+                pr.append( (float(l[1])/1000, float(l[5])) )
+            bestStaticAccRT_nearest[bench] = pr
 
     for bench in benchmarks:
         fits = []
         fits.append( (0, 0.0000871*float(dwc_sensitive_bits[bench])) )
+        fits_static_top[bench] = fits
+
+        fits = []
+        fits.append( (0, 0.0000871*float(dwc_sensitive_bits[bench])) )
         fits_static_bottom[bench] = fits
 
+        fits = []
+        fits.append( (0, 0.0000871*float(dwc_sensitive_bits[bench])) )
+        fits_static_nearest[bench] = fits
+
+        fits = []
+        fits.append( (0, 0.0000871*float(dwc_sensitive_bits[bench])) )
+        fits_static_verify[bench] = fits
+
     for bench in benchmarks:
-        repair_probs = bestStaticAccRT[bench]
+        repair_probs = bestStaticAccRT_top[bench]
+        for slack, pr in repair_probs:
+            fits_static_top[bench].append( (slack, float((1-pr)*0.0000871*float(dwc_sensitive_bits[bench])) ) )
+
+        repair_probs = bestStaticAccRT_bottom[bench]
         for slack, pr in repair_probs:
             fits_static_bottom[bench].append( (slack, float((1-pr)*0.0000871*float(dwc_sensitive_bits[bench])) ) )
 
+        repair_probs = bestStaticAccRT_nearest[bench]
+        for slack, pr in repair_probs:
+            fits_static_nearest[bench].append( (slack, float((1-pr)*0.0000871*float(dwc_sensitive_bits[bench])) ) )
+
+        repair_probs = verifyBestStaticAccRT[bench]
+        for slack, pr in repair_probs:
+            fits_static_verify[bench].append( (slack, float((1-pr)*0.0000871*float(dwc_sensitive_bits[bench])) ) )
+
+
 def print_fits():
 
-    print "Standard scrubbing"
-    for bench in benchmarks:
-        fits = fits_standard[bench]
-        print bench, " ",
-        for f in fits:
-            print "%.7f" % round(f,7),
-        print ""
-
+#     print "Standard scrubbing"
+#     for bench in benchmarks:
+#         fits = fits_standard[bench]
+#         print bench, " ",
+#         for f in fits:
+#             print "%.7f" % round(f,7),
+#         print ""
+# 
     print "Best static"
     for bench in benchmarks:
         fits = fits_static_bottom[bench]
         print bench, " ",
         for f in fits:
-            print "%.7f" % round(f,7),
+            print "(%d, %.7f)" % (f[0], round(f[1],7)),
+        print ""
+
+    print "Best static verification"
+    for bench in benchmarks:
+        fits = fits_static_verify[bench]
+        print bench, " ",
+        for f in fits:
+            print "(%d, %.7f)" % (f[0], round(f[1],7)),
         print ""
 
 
@@ -166,9 +254,12 @@ def plot_fits():
     slacks = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600]
 
     tmp_fits_standard = fits_standard
+    tmp_fits_static_top = fits_static_top
     tmp_fits_static_bottom = fits_static_bottom
+    tmp_fits_static_nearest = fits_static_nearest
+    tmp_fits_static_verify = fits_static_verify
 
-    fig = plt.figure(1, figsize=(11, 10.5))
+    fig = plt.figure(1, figsize=(12, 10.5))
 
     # Removes trailing 0.0s in the FIT values and plot the results
 
@@ -199,24 +290,52 @@ def plot_fits():
                 max_static = tp[0]
                 del tmp_fits_static_bottom[bench][i:]
  
-        if max >= max_static:
-            tmp_fits_standard[bench].append(float(0.0))
-            tmp_fits_static_bottom[bench].append((max, float(0.0)))
-        else:
-            tmp_fits_static_bottom[bench].append((max_static, float(0.0)))
-            for i in slacks[len(tmp_fits_standard):]:
-                # add last value as 0.0 as to finish the curves at y=0
-                tmp_fits_standard[bench].append(float(0.0))
-                if i >= max_static:
-                    break;
+        for i, tp in enumerate(fits_static_top[bench]):
+            if tp[1] == 0.0 or tp[1] < fit_min:
+                if max_static < tp[0]:
+                    max_static = tp[0]
+                del tmp_fits_static_top[bench][i:]
+
+        for i, tp in enumerate(fits_static_nearest[bench]):
+            if tp[1] == 0.0 or tp[1] < fit_min:
+                if max_static < tp[0]:
+                    max_static = tp[0]
+                del tmp_fits_static_nearest[bench][i:]
+
+        tmp_fits_static_top[bench].append((max_static, float(0.0)))
+        tmp_fits_static_bottom[bench].append((max_static, float(0.0)))
+        tmp_fits_static_nearest[bench].append((max_static, float(0.0)))
  
-        max = len(tmp_fits_standard[bench])
-        max = slacks[:max]
+#         if max >= max_static:
+#             tmp_fits_standard[bench].append(float(0.0))
+#             tmp_fits_static_bottom[bench].append((max, float(0.0)))
+#             tmp_fits_static_top[bench].append((max, float(0.0)))
+#         else:
+#             tmp_fits_static_bottom[bench].append((max_static, float(0.0)))
+#             for i in slacks[len(tmp_fits_standard):]:
+#                 # add last value as 0.0 as to finish the curves at y=0
+#                 tmp_fits_standard[bench].append(float(0.0))
+#                 if i >= max_static:
+#                     break;
+ 
+ 
+ 
+#         max = len(tmp_fits_standard[bench])
+#         tmp_fits_static_verify[bench] = tmp_fits_static_verify[bench][:max]
+#         max = slacks[:max]
 
         sp = fig.add_subplot(4, 3, j+1)
         fit_subplots[bench] = sp
-        sp.plot(max, tmp_fits_standard[bench], '--',color='0', linewidth=2.0, label="Standard scrubbing")
-        sp.plot(*zip(*tmp_fits_static_bottom[bench]), color='0.66', linewidth=2.0, label="Bottom")
+
+##        sp.plot(max, tmp_fits_standard[bench], '--',color='0.80', linewidth=1.0, label="Standard scrubbing", marker='*')
+
+        sp.plot(*zip(*tmp_fits_static_top[bench]), color='r', linewidth=2.0, label="Top")
+
+        sp.plot(*zip(*tmp_fits_static_bottom[bench]), color='g', linewidth=2.0, label="Bottom")
+
+        sp.plot(*zip(*tmp_fits_static_nearest[bench]), color='b', linewidth=2.0, label="Nearest")
+
+##        sp.plot(*zip(*tmp_fits_static_verify[bench]), linestyle='--', color='0.80', linewidth=1.0, label="Shifted scrubbing", marker='D', markersize=2.0)
 
         sp.annotate(bench.replace('_', '\_'), xy=(0.75, 0.75), xycoords='axes fraction', horizontalalignment='center')
         sp.yaxis.grid(True)
@@ -280,7 +399,7 @@ def main(argv):
 
     calc_fits(work_dir, dwc_dir, static_dir)
 
-##    print_fits()
+#    print_fits()
 
     plot_fits()
 
