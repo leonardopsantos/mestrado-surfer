@@ -172,7 +172,7 @@ def calc_fits(work_dir=".", dwc_dir="."):
         while True:
             line = accHits_file.readline().rstrip()
             if not line: break
-            if( (i%15) == 0 ):
+            if( (i%16) == 0 ):
                 dwc_accHits[benchmarks[y]] = line
                 y = y +1
             i = i+1
@@ -211,7 +211,7 @@ def calc_fits(work_dir=".", dwc_dir="."):
         while True:
             line = accHits_file.readline().rstrip()
             if not line: break
-            if( (i%15) == 0 ):
+            if( (i%16) == 0 ):
                 accHits[benchmarks[y]] = line
                 y = y +1
             i = i+1
@@ -415,8 +415,8 @@ def plot_fits():
 
         sp = fig.add_subplot(4, 3, j+1)
         fit_subplots[bench] = sp
-        sp.plot(slacks[:max], tmp_fits_static[bench], color='0.0', linewidth=2.0, label="Shifted scrubbing")
-        sp.plot(slacks[:max], tmp_fits_standard[bench], '--',color='0', linewidth=2.0, label="Standard scrubbing")
+        sp.plot(slacks[:max], tmp_fits_static[bench], color='0.0', linewidth=2.0, label="Shifted scrubbing", marker='*')
+        sp.plot(slacks[:max], tmp_fits_standard[bench], '--',color='0', linewidth=2.0, label="Standard scrubbing", marker='+')
         sp.annotate(bench.replace('_', '\_'), xy=(0.75, 0.75), xycoords='axes fraction', horizontalalignment='center')
         sp.yaxis.grid(True)
         handles, labels = sp.get_legend_handles_labels()
@@ -437,7 +437,7 @@ def plot_fits():
 
     fig.subplots_adjust(bottom=0.11)
 
-#    plt.show()
+    plt.show()
 
     fig.savefig('static.pdf', format='pdf', bbox_extra_artists=(legend,), bbox_inches='tight')
 
@@ -471,7 +471,7 @@ def main(argv):
 
     calc_fits(work_dir, dwc_dir)
 
-    print_fits()
+##    print_fits()
 
     plot_fits()
 
