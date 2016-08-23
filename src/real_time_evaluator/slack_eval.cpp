@@ -16,20 +16,34 @@ unsigned long long sum;
 	ofstream outFile;
 	outFile.open (filename.c_str());
 
-	for (i = 0; i < min_idx; i++ )
-		outFile << "0" << endl;
-
 	sum = 0;
 	for (i = min_idx; i <= max_idx; i++ ) {
-		outFile << compHisto[i] << endl;
 		sum += compHisto[i];
 	}
 
-	for (i = max_idx+1; i < 2060; i++ )
-		outFile << "0" << endl;
-
 	outFile << sum << endl;
-	outFile << "0" << endl;
+//	outFile << "min " << idx2Faddr(min_idx) << endl;
+//	outFile << "max " << idx2Faddr(max_idx) << endl;
+
+	outFile << "min " << min_idx << endl;
+	outFile << "max " << max_idx << endl;
+
+	cout << sum << endl;
+	cout << "min " << min_idx << endl;
+	cout << "min " << idx2Faddr(min_idx) << endl;
+	cout << "max " << max_idx << endl;
+	cout << "max " << idx2Faddr(max_idx) << endl;
+
+//	for (i = 0; i < min_idx; i++ )
+//		outFile << "0" << endl;
+
+	for (i = min_idx; i <= max_idx; i++ ) {
+//		outFile << idx2Faddr(i) << " " << compHisto[i] << endl;
+		outFile << i << " " << compHisto[i] << endl;
+	}
+
+//	for (i = max_idx+1; i < 2060; i++ )
+//		outFile << "0" << endl;
 
 	outFile.close();
 }
@@ -188,7 +202,7 @@ void calculateBestStaticRTCover(ofstream &outFile, vector<unsigned long long> co
 	int Os; // histogram sum
 
 	outFile << "min_idx = " << min_idx << ", max_idx = " << max_idx << "\n";
-	cout << "min_idx = " << min_idx << ", max_idx = " << max_idx << "\n";
+//	cout << "min_idx = " << min_idx << ", max_idx = " << max_idx << "\n";
 
 	Os = 0;
 	for(i = min_idx; i <= max_idx; i++) {
@@ -196,7 +210,7 @@ void calculateBestStaticRTCover(ofstream &outFile, vector<unsigned long long> co
 	}
 
 	outFile << "cover " << Os << "\n";
-	cout << "cover " << Os << "\n";
+//	cout << "cover " << Os << "\n";
 
 	// (60.000-FRAME_CYCLES-CMD_CYCLES)/FRAME_CYCLES = 1461
 	// 1461 the number of frames that can be scrubbed in 600 us (or 60.000 clock cycles)
@@ -217,7 +231,7 @@ void calculateBestStaticRTCover(ofstream &outFile, vector<unsigned long long> co
 			last += min_idx;
 		}
 		outFile << "slack " << slack*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
-		cout << "slack " << slack*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
+//		cout << "slack " << slack*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
 	}
 
 	cover = Os;
@@ -229,7 +243,7 @@ void calculateBestStaticRTCover(ofstream &outFile, vector<unsigned long long> co
 			last += min_idx;
 		}
 		outFile << "slack " << slack*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
-		cout << "slack " << slack*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
+//		cout << "slack " << slack*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
 	}
 }
 
@@ -243,7 +257,7 @@ void verifyBestStaticRTCover(ofstream &outFile, vector<unsigned long long> compH
 	int Os; // histogram sum
 
 	outFile << "min_idx = " << min_idx << ", max_idx = " << max_idx << "\n";
-	cout << "min_idx = " << min_idx << ", max_idx = " << max_idx << "\n";
+//	cout << "min_idx = " << min_idx << ", max_idx = " << max_idx << "\n";
 
 	Os = 0;
 	for(i = min_idx; i <= max_idx; i++) {
@@ -251,7 +265,7 @@ void verifyBestStaticRTCover(ofstream &outFile, vector<unsigned long long> compH
 	}
 
 	outFile << "cover " << Os << "\n";
-	cout << "cover " << Os << "\n";
+//	cout << "cover " << Os << "\n";
 
 	int deadline, step;
 	step = 1000;
@@ -269,7 +283,36 @@ void verifyBestStaticRTCover(ofstream &outFile, vector<unsigned long long> compH
 		if( last > max_idx )
 			last = max_idx;
 		outFile << "slack " << deadline*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
-		cout << "slack " << deadline*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
+//		cout << "slack " << deadline*10 << " " << bs << " " << last << " " << cover << " " << ((double)cover)/Os <<  "\n";
+	}
+}
+
+void calculateStandardScrubbingRTCover(ofstream &outFile, vector<unsigned long long> compHist)
+{
+	int i, j;
+	int frames, slack;
+	int cover;
+	int Os; // histogram sum
+
+	outFile << "min_idx = " << min_idx << ", max_idx = " << max_idx << "\n";
+//	cout << "min_idx = " << min_idx << ", max_idx = " << max_idx << "\n";
+
+	Os = 0;
+	for(i = min_idx; i <= max_idx; i++) {
+		Os += compHist[i];
+	}
+
+	outFile << "cover " << Os << "\n";
+	cout << "cover " << Os << "\n";
+
+	cover = 0;
+	frames = 1;
+	for(i = min_idx; i <= max_idx; i++) {
+		cover += compHist[i];
+		slack = FRAME_CYCLES+CMD_CYCLES+FRAME_CYCLES*frames;
+		outFile << "slack " << slack*10 << " " << min_idx << " " << i << " " << cover << " " << ((double)cover)/Os <<  "\n";
+//		cout << "slack " << slack*10 << " " << min_idx << " " << i << " " << cover << " " << ((double)cover)/Os <<  "\n";
+		frames++;
 	}
 }
 
@@ -309,7 +352,6 @@ int main(int argc, char *argv[])
 	sig_size_internal = 1;
 	sig_size_po = 1;
 
-
 	vector<string> splitpath = tokenize(string(argv[1]), '/');
 	vector<string> fn = tokenize(splitpath[splitpath.size()-1], '.');
 	string benchmark = fn[0];
@@ -332,12 +374,16 @@ int main(int argc, char *argv[])
 	return 0;
 #endif
 
-
 	for(tableType::iterator it = compSigTable.begin(); it != compSigTable.end(); ++it) {
 		string verifname = benchmark+"_bestStaticVerify.txt";
 		ofstream outVerify;
 		outVerify.open (verifname.c_str());
 		verifyBestStaticRTCover(outVerify, it->second, slacksBestStaticTable);
+		outVerify.close();
+
+		verifname = benchmark+"_standardScrubbing.txt";
+		outVerify.open (verifname.c_str());
+		calculateStandardScrubbingRTCover(outVerify, it->second);
 		outVerify.close();
 
 		printHistogram(benchmark+"_bestStaticHisto.txt", it->second);
